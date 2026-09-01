@@ -69,12 +69,20 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         {/* Bottom Credits Bar with Bardo and 50% larger LYNX Logo linked to lnx.com.ar */}
         <div className="pt-8 border-t border-zinc-800/80 flex flex-col sm:flex-row items-center justify-between gap-6 text-[11px] sm:text-xs text-zinc-400 font-light">
           <div className="flex items-center gap-3.5 flex-wrap">
-            <span>Sitio web diseñado</span>
-            <img
-              src="/assets/bardo-logo.svg"
-              alt="Bardo"
-              className="h-3.5 sm:h-4 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
-            />
+            <span>Sitio web diseñado por</span>
+            <a
+              href="https://marianacurto.myportfolio.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Mariana Curto - Bardo Branding & Design"
+              className="inline-flex items-center hover:opacity-100 transition-opacity group"
+            >
+              <img
+                src="/assets/bardo-logo.svg"
+                alt="Bardo"
+                className="h-3.5 sm:h-4 w-auto object-contain opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all"
+              />
+            </a>
             <span className="ml-1">y desarrollado por</span>
             <a
               href="https://www.lnx.com.ar"
