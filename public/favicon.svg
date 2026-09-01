@@ -1,4 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <circle cx="50" cy="50" r="48" fill="#141414" stroke="#C5A880" stroke-width="4"/>
-  <text x="50%" y="58%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="44" fill="#C5A880">AL</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#141414" />
+  <g transform="translate(48.66, 115.62) scale(0.65)">
+    <path
+      fill="#FFFFFF"
+      d="M363.46,393.16v38.77h274.51s-.11-52-.11-52h-119.65c-23.67-.26-22.97,20.99-53.41,40.14,0,0-.01,0-.02.01-12.7,6.55-39.34,5.52-41.51-29.56V0h-94.38L0,431.93h70.28l68.39-87.36c5.02-6.5.39-15.92-7.82-15.92h-1.01v-3.8h161.19c44.22,0,72.43,27.14,72.43,68.3ZM264.55,177.69s88.84-117.63,95.11-126.05h3.79c-.33,7.18,0,222.23,0,222.23h-67.4c-49.58,0-67.81-49.91-31.51-96.19Z"
+    />
+  </g>
 </svg>
