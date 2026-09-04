@@ -1,7 +1,8 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Star, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Testimonial } from '../../types/testimonial';
 import { testimonialService } from '../../lib/supabase';
+import { ReviewAvatar } from './ReviewAvatar';
 
 export const TestimonialsSection: React.FC = () => {
   const [testimonials, setTestimonials] = useState<Testimonial[]>(() => testimonialService.getActiveTestimonials());
@@ -95,19 +96,14 @@ export const TestimonialsSection: React.FC = () => {
               key={item.id || idx}
               className="bg-white/95 backdrop-blur-sm rounded-2xl p-5 pt-8 shadow-sm border border-white/90 text-center relative flex flex-col justify-between space-y-3 hover:translate-y-[-2px] transition-all duration-200"
             >
-              {/* Circular Neutral Avatar from Figma */}
-              <div className="w-12 h-12 rounded-full bg-[#CCCCCC] border-[3px] border-white shadow-sm absolute -top-6 left-1/2 -translate-x-1/2 flex items-center justify-center overflow-hidden">
-                {item.avatar_url ? (
-                  <img src={item.avatar_url} alt={item.client_name} className="w-full h-full object-cover" />
-                ) : (
-                  <svg
-                    className="w-7 h-7 text-white/80 fill-current mt-1.5"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                  </svg>
-                )}
-              </div>
+              {/* Platform Avatar / Badge */}
+              <ReviewAvatar
+                platform={item.platform}
+                avatarUrl={item.avatar_url}
+                clientName={item.client_name}
+                size="md"
+                className="absolute -top-6 left-1/2 -translate-x-1/2"
+              />
 
               <div className="space-y-1.5">
                 <div>
@@ -157,19 +153,14 @@ export const TestimonialsSection: React.FC = () => {
                 key={item.id || idx}
                 className="w-[80vw] max-w-[320px] shrink-0 snap-center bg-white/95 backdrop-blur-sm rounded-2xl p-5 pt-8 shadow-md border border-white/90 text-center relative flex flex-col justify-between space-y-3"
               >
-                {/* Circular Neutral Avatar */}
-                <div className="w-12 h-12 rounded-full bg-[#CCCCCC] border-[3px] border-white shadow-sm absolute -top-6 left-1/2 -translate-x-1/2 flex items-center justify-center overflow-hidden">
-                  {item.avatar_url ? (
-                    <img src={item.avatar_url} alt={item.client_name} className="w-full h-full object-cover" />
-                  ) : (
-                    <svg
-                      className="w-7 h-7 text-white/80 fill-current mt-1.5"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                    </svg>
-                  )}
-                </div>
+                {/* Platform Avatar / Badge */}
+                <ReviewAvatar
+                  platform={item.platform}
+                  avatarUrl={item.avatar_url}
+                  clientName={item.client_name}
+                  size="md"
+                  className="absolute -top-6 left-1/2 -translate-x-1/2"
+                />
 
                 <div className="space-y-1.5">
                   <div>

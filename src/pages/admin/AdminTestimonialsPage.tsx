@@ -1,6 +1,16 @@
-﻿import React, { useState, useEffect } from 'react';
-import { Testimonial } from '../../types/testimonial';
+import React, { useState, useEffect } from 'react';
+import { Testimonial, ReviewPlatform } from '../../types/testimonial';
 import { testimonialService } from '../../lib/supabase';
+import {
+  ReviewAvatar,
+  PLATFORM_OPTIONS,
+  GoogleIcon,
+  InstagramIcon,
+  FacebookIcon,
+  WhatsAppIcon,
+  ZonaPropIcon,
+  WebIcon
+} from '../../components/public/ReviewAvatar';
 import {
   Star,
   Plus,
@@ -28,6 +38,7 @@ export const AdminTestimonialsPage: React.FC = () => {
   const [quote, setQuote] = useState('');
   const [rating, setRating] = useState<number>(5);
   const [date, setDate] = useState('');
+  const [platform, setPlatform] = useState<ReviewPlatform>('google');
   const [isActive, setIsActive] = useState<boolean>(true);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
@@ -52,6 +63,7 @@ export const AdminTestimonialsPage: React.FC = () => {
     setQuote('');
     setRating(5);
     setDate(new Date().toLocaleDateString('es-AR'));
+    setPlatform('google');
     setIsActive(true);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -64,6 +76,7 @@ export const AdminTestimonialsPage: React.FC = () => {
     setQuote(item.quote.replace(/^[“"]|[”"]$/g, ''));
     setRating(item.rating || 5);
     setDate(item.date);
+    setPlatform(item.platform || 'google');
     setIsActive(item.is_active);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -94,6 +107,7 @@ export const AdminTestimonialsPage: React.FC = () => {
       quote: formattedQuote,
       rating,
       date: date.trim() || new Date().toLocaleDateString('es-AR'),
+      platform,
       is_active: isActive,
     });
 
@@ -133,6 +147,54 @@ export const AdminTestimonialsPage: React.FC = () => {
     }
   };
 
+  const renderPlatformBadge = (p: ReviewPlatform = 'google') => {
+    switch (p) {
+      case 'google':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[10px] font-semibold border border-blue-100">
+            <GoogleIcon className="w-3 h-3" />
+            <span>Google</span>
+          </span>
+        );
+      case 'instagram':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-pink-50 text-pink-700 text-[10px] font-semibold border border-pink-100">
+            <InstagramIcon className="w-3 h-3 text-pink-600" />
+            <span>Instagram</span>
+          </span>
+        );
+      case 'facebook':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-50 text-[#1877F2] text-[10px] font-semibold border border-blue-100">
+            <FacebookIcon className="w-3 h-3" />
+            <span>Facebook</span>
+          </span>
+        );
+      case 'whatsapp':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-100">
+            <WhatsAppIcon className="w-3 h-3 text-emerald-600" />
+            <span>WhatsApp</span>
+          </span>
+        );
+      case 'zonaprop':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-orange-50 text-orange-700 text-[10px] font-semibold border border-orange-100">
+            <ZonaPropIcon className="w-3 h-3 text-[#E0592A]" />
+            <span>ZonaProp</span>
+          </span>
+        );
+      case 'web':
+      default:
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-700 text-[10px] font-semibold border border-zinc-200">
+            <WebIcon className="w-3 h-3 text-zinc-600" />
+            <span>Web Adelina</span>
+          </span>
+        );
+    }
+  };
+
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-12">
       {/* Top Header */}
@@ -146,7 +208,7 @@ export const AdminTestimonialsPage: React.FC = () => {
             Reseñas & Testimonios
           </h1>
           <p className="text-xs sm:text-sm text-zinc-500 font-light mt-1">
-            Administrá las opiniones de tus clientes y seleccioná con el switch cuáles querés que aparezcan en la portada de la web.
+            Administrá las opiniones de tus clientes, elegí su plataforma de origen (Google, Instagram, WhatsApp, etc.) y seleccioná cuáles querés que aparezcan en la portada.
           </p>
         </div>
 
@@ -238,6 +300,66 @@ export const AdminTestimonialsPage: React.FC = () => {
           </div>
 
           <form onSubmit={handleSave} className="space-y-6">
+            {/* Platform Selector */}
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-zinc-800 flex items-center gap-2">
+                <span>Plataforma de Origen (Logo en la imagen)</span>
+                <span className="text-[11px] font-normal text-zinc-400">
+                  - Determina el isotipo/logo que aparecerá en el círculo superior
+                </span>
+              </label>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+                {PLATFORM_OPTIONS.map((opt) => {
+                  const isSelected = platform === opt.id;
+                  return (
+                    <button
+                      type="button"
+                      key={opt.id}
+                      onClick={() => setPlatform(opt.id)}
+                      className={`p-3 rounded-2xl border text-left flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
+                        isSelected
+                          ? 'border-zinc-900 bg-zinc-900 text-white shadow-sm scale-[1.02]'
+                          : 'border-zinc-200 bg-zinc-50/70 hover:bg-zinc-100/80 text-zinc-700'
+                      }`}
+                    >
+                      <div className="p-1.5 rounded-full bg-white shadow-sm flex items-center justify-center">
+                        {opt.id === 'google' && <GoogleIcon className="w-5 h-5" />}
+                        {opt.id === 'instagram' && (
+                          <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center text-white">
+                            <InstagramIcon className="w-3.5 h-3.5" />
+                          </div>
+                        )}
+                        {opt.id === 'facebook' && (
+                          <div className="w-5 h-5 rounded-full bg-[#1877F2] flex items-center justify-center text-white">
+                            <FacebookIcon className="w-3.5 h-3.5" />
+                          </div>
+                        )}
+                        {opt.id === 'whatsapp' && (
+                          <div className="w-5 h-5 rounded-full bg-[#25D366] flex items-center justify-center text-white">
+                            <WhatsAppIcon className="w-3.5 h-3.5" />
+                          </div>
+                        )}
+                        {opt.id === 'zonaprop' && (
+                          <div className="w-5 h-5 rounded-full bg-[#E0592A] flex items-center justify-center text-white">
+                            <ZonaPropIcon className="w-3.5 h-3.5" />
+                          </div>
+                        )}
+                        {opt.id === 'web' && (
+                          <div className="w-5 h-5 rounded-full bg-zinc-800 flex items-center justify-center text-[#CCA352]">
+                            <WebIcon className="w-3.5 h-3.5" />
+                          </div>
+                        )}
+                      </div>
+                      <span className={`text-[11px] font-semibold ${isSelected ? 'text-white' : 'text-zinc-800'}`}>
+                        {opt.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               {/* Client Name */}
               <div className="space-y-1.5">
@@ -322,6 +444,52 @@ export const AdminTestimonialsPage: React.FC = () => {
               />
             </div>
 
+            {/* Live Card Preview */}
+            <div className="bg-zinc-100/80 p-5 rounded-2xl border border-zinc-200 space-y-3">
+              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider block">
+                Vista previa de la tarjeta en la web:
+              </span>
+              <div className="max-w-xs mx-auto">
+                <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-5 pt-8 shadow-sm border border-zinc-200/80 text-center relative flex flex-col justify-between space-y-3">
+                  <ReviewAvatar
+                    platform={platform}
+                    clientName={clientName || 'Cliente'}
+                    size="md"
+                    className="absolute -top-6 left-1/2 -translate-x-1/2"
+                  />
+                  <div className="space-y-1.5">
+                    <div>
+                      <h4 className="font-archivo text-[11px] font-bold text-zinc-900 uppercase tracking-wider line-clamp-1">
+                        {clientName || 'Nombre del Cliente'}
+                      </h4>
+                      <span className="text-[9.5px] text-zinc-400 font-light block line-clamp-1">
+                        {clientRole || 'Rol / Operación'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-center gap-0.5 text-[#F59E0B] py-0.5">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-3 h-3 ${
+                            i < rating ? 'fill-current text-[#F59E0B]' : 'text-zinc-200'
+                          }`}
+                        />
+                      ))}
+                    </div>
+
+                    <p className="font-archivo text-[10.5px] text-zinc-600 font-light leading-relaxed px-1">
+                      {quote.trim() ? `“${quote.trim().replace(/^[“"]|[”"]$/g, '')}”` : '“Excelente experiencia y atención personalizada...”'}
+                    </p>
+                  </div>
+
+                  <div className="pt-2 border-t border-zinc-100 text-[9px] text-zinc-400 font-mono">
+                    {date.trim() || 'Hoy'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Is Active Switch in Form */}
             <div className="flex items-center justify-between bg-zinc-50 p-4 rounded-2xl border border-zinc-200">
               <div>
@@ -388,15 +556,20 @@ export const AdminTestimonialsPage: React.FC = () => {
               {/* Card Header: Avatar, Name, Role, & Visibility Toggle */}
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-zinc-200 border-2 border-white shadow-sm flex items-center justify-center shrink-0 overflow-hidden">
-                    <svg className="w-6 h-6 text-zinc-400 fill-current mt-1" viewBox="0 0 24 24">
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                    </svg>
-                  </div>
+                  <ReviewAvatar
+                    platform={item.platform}
+                    avatarUrl={item.avatar_url}
+                    clientName={item.client_name}
+                    size="sm"
+                    className="shrink-0"
+                  />
                   <div>
-                    <h3 className="font-archivo text-xs sm:text-sm font-bold text-zinc-900 uppercase tracking-wide">
-                      {item.client_name}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-archivo text-xs sm:text-sm font-bold text-zinc-900 uppercase tracking-wide">
+                        {item.client_name}
+                      </h3>
+                      {renderPlatformBadge(item.platform)}
+                    </div>
                     <span className="text-[11px] text-zinc-400 font-light block">
                       {item.client_role}
                     </span>
@@ -475,3 +648,4 @@ export const AdminTestimonialsPage: React.FC = () => {
     </div>
   );
 };
+
