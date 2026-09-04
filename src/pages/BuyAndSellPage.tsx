@@ -193,13 +193,13 @@ export const BuyAndSellPage: React.FC<BuyAndSellPageProps> = ({
         <div className="relative z-10 max-w-7xl mx-auto w-full pt-4" />
       </section>
 
-      {/* 2. SEARCH & FILTER BAR ("BUSCADOR" FIGMA 1:1 CON GLASSMORPHISM) */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 -mt-10 sm:-mt-12 relative z-20">
-        <div className="bg-white/85 backdrop-blur-2xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.2)] border border-white/70 ring-1 ring-black/5 transition-all">
+      {/* 2. SEARCH & FILTER BAR ("BUSCADOR" FIGMA 1:1 CON GLASSMORPHISM / TRANSPARENCIA) */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 -mt-12 sm:-mt-16 relative z-20">
+        <div className="bg-white/35 backdrop-blur-2xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-white/60 ring-1 ring-black/5 transition-all">
           {/* Operation switch buttons: Comprar / Vender / Todos */}
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-4 border-b border-zinc-200/60">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-4 border-b border-white/40">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mr-1 hidden sm:inline">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-600 mr-1 hidden sm:inline">
                 Operación:
               </span>
               <button
@@ -208,7 +208,7 @@ export const BuyAndSellPage: React.FC<BuyAndSellPageProps> = ({
                 className={`px-4 py-2 rounded-full text-xs font-archivo font-medium transition-all ${
                   operation === 'all'
                     ? 'bg-adelina-dark text-white shadow-sm ring-1 ring-white/20'
-                    : 'bg-white/60 hover:bg-white text-zinc-700 border border-white/80 shadow-sm'
+                    : 'bg-white/40 hover:bg-white/70 text-zinc-800 border border-white/60 backdrop-blur-sm shadow-sm'
                 }`}
               >
                 Todas
@@ -219,7 +219,7 @@ export const BuyAndSellPage: React.FC<BuyAndSellPageProps> = ({
                 className={`px-4 py-2 rounded-full text-xs font-archivo font-medium transition-all ${
                   operation === 'sale'
                     ? 'bg-adelina-dark text-white shadow-sm ring-1 ring-white/20'
-                    : 'bg-white/60 hover:bg-white text-zinc-700 border border-white/80 shadow-sm'
+                    : 'bg-white/40 hover:bg-white/70 text-zinc-800 border border-white/60 backdrop-blur-sm shadow-sm'
                 }`}
               >
                 Comprar / Venta
@@ -230,7 +230,7 @@ export const BuyAndSellPage: React.FC<BuyAndSellPageProps> = ({
                 className={`px-4 py-2 rounded-full text-xs font-archivo font-medium transition-all ${
                   operation === 'rent'
                     ? 'bg-adelina-dark text-white shadow-sm ring-1 ring-white/20'
-                    : 'bg-white/60 hover:bg-white text-zinc-700 border border-white/80 shadow-sm'
+                    : 'bg-white/40 hover:bg-white/70 text-zinc-800 border border-white/60 backdrop-blur-sm shadow-sm'
                 }`}
               >
                 Alquiler
@@ -253,8 +253,8 @@ export const BuyAndSellPage: React.FC<BuyAndSellPageProps> = ({
           {/* Filter Dropdowns Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             {/* 1. Tipo de propiedad */}
-            <div className="bg-white/70 backdrop-blur-md border border-white/90 hover:border-adelina-accent focus-within:border-adelina-accent focus-within:bg-white rounded-xl px-3 py-2.5 transition-all shadow-sm">
-              <label className="block text-[10px] uppercase font-bold tracking-wider text-zinc-400 mb-0.5">
+            <div className="bg-white/50 backdrop-blur-md border border-white/60 hover:border-adelina-accent focus-within:border-adelina-accent focus-within:bg-white/85 rounded-xl px-3 py-2.5 transition-all shadow-sm">
+              <label className="block text-[10px] uppercase font-bold tracking-wider text-zinc-500 mb-0.5">
                 Tipo de propiedad
               </label>
               <select
@@ -272,8 +272,8 @@ export const BuyAndSellPage: React.FC<BuyAndSellPageProps> = ({
             </div>
 
             {/* 2. Dormitorios */}
-            <div className="bg-white/70 backdrop-blur-md border border-white/90 hover:border-adelina-accent focus-within:border-adelina-accent focus-within:bg-white rounded-xl px-3 py-2.5 transition-all shadow-sm">
-              <label className="block text-[10px] uppercase font-bold tracking-wider text-zinc-400 mb-0.5">
+            <div className="bg-white/50 backdrop-blur-md border border-white/60 hover:border-adelina-accent focus-within:border-adelina-accent focus-within:bg-white/85 rounded-xl px-3 py-2.5 transition-all shadow-sm">
+              <label className="block text-[10px] uppercase font-bold tracking-wider text-zinc-500 mb-0.5">
                 Dormitorios
               </label>
               <select
@@ -290,8 +290,8 @@ export const BuyAndSellPage: React.FC<BuyAndSellPageProps> = ({
             </div>
 
             {/* 3. Baños */}
-            <div className="bg-white/70 backdrop-blur-md border border-white/90 hover:border-adelina-accent focus-within:border-adelina-accent focus-within:bg-white rounded-xl px-3 py-2.5 transition-all shadow-sm">
-              <label className="block text-[10px] uppercase font-bold tracking-wider text-zinc-400 mb-0.5">
+            <div className="bg-white/50 backdrop-blur-md border border-white/60 hover:border-adelina-accent focus-within:border-adelina-accent focus-within:bg-white/85 rounded-xl px-3 py-2.5 transition-all shadow-sm">
+              <label className="block text-[10px] uppercase font-bold tracking-wider text-zinc-500 mb-0.5">
                 Baños
               </label>
               <select
@@ -307,12 +307,12 @@ export const BuyAndSellPage: React.FC<BuyAndSellPageProps> = ({
             </div>
 
             {/* 4. Ubicación / Búsqueda */}
-            <div className="bg-white/70 backdrop-blur-md border border-white/90 hover:border-adelina-accent focus-within:border-adelina-accent focus-within:bg-white rounded-xl px-3 py-2.5 transition-all shadow-sm sm:col-span-2 lg:col-span-1">
-              <label className="block text-[10px] uppercase font-bold tracking-wider text-zinc-400 mb-0.5">
+            <div className="bg-white/50 backdrop-blur-md border border-white/60 hover:border-adelina-accent focus-within:border-adelina-accent focus-within:bg-white/85 rounded-xl px-3 py-2.5 transition-all shadow-sm sm:col-span-2 lg:col-span-1">
+              <label className="block text-[10px] uppercase font-bold tracking-wider text-zinc-500 mb-0.5">
                 Ubicación / Barrio
               </label>
               <div className="flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                <MapPin className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
                 <input
                   type="text"
                   placeholder="Ej. Centro, Parque Urquiza..."
@@ -329,13 +329,13 @@ export const BuyAndSellPage: React.FC<BuyAndSellPageProps> = ({
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="w-full h-full min-h-[48px] bg-white/80 hover:bg-white text-zinc-700 font-archivo font-medium px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm border border-white/80"
+                  className="w-full h-full min-h-[48px] bg-white/60 hover:bg-white text-zinc-700 font-archivo font-medium px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm border border-white/60 backdrop-blur-sm"
                 >
                   <X className="w-4 h-4 text-rose-500" />
                   <span>Limpiar filtros</span>
                 </button>
               ) : (
-                <div className="w-full h-full min-h-[48px] bg-adelina-dark/95 backdrop-blur-md text-white rounded-xl px-4 py-2.5 flex items-center justify-center gap-2 text-xs font-archivo font-medium shadow-md">
+                <div className="w-full h-full min-h-[48px] bg-adelina-dark/90 backdrop-blur-md text-white rounded-xl px-4 py-2.5 flex items-center justify-center gap-2 text-xs font-archivo font-medium shadow-md">
                   <Search className="w-4 h-4 text-adelina-accent" />
                   <span>Filtrando en vivo</span>
                 </div>
