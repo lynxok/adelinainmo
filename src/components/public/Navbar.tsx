@@ -166,14 +166,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView }) => {
 
         {/* CTA Actions */}
         <div className="hidden lg:flex items-center gap-3">
-          <button
-            onClick={handleScrollToContact}
-            className="inline-flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white font-archivo font-medium px-4 py-2 rounded-full text-xs transition-all border border-white/20 backdrop-blur-sm active:scale-95"
-            title="Ir a sección de contacto"
-          >
-            <span>Contacto</span>
-          </button>
-
           <a
             href={getWhatsAppGeneralUrl()}
             target="_blank"

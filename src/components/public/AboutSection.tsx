@@ -29,14 +29,14 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
             </span>
 
             {/* Title in Uppercase */}
-            <h2 className="font-archivo text-2xl sm:text-4xl lg:text-[42px] font-normal text-zinc-900 tracking-tight uppercase leading-[1.15]">
+            <h2 className="font-archivo text-2xl sm:text-4xl lg:text-[42px] font-normal text-zinc-900 tracking-tight uppercase leading-[34px] sm:leading-[44px] lg:leading-[52px]">
               UNA FORMA MÁS <br />
               CERCANA DE VIVIR EL <br />
               PROCESO INMOBILIARIO
             </h2>
 
             {/* Paragraph Text */}
-            <p className="font-archivo text-xs sm:text-sm lg:text-[15px] text-zinc-700 font-light leading-relaxed max-w-lg">
+            <p className="font-archivo text-xs sm:text-sm lg:text-[15px] text-zinc-700 font-light leading-[26px] sm:leading-[28px] max-w-lg">
               Soy Adelina Luján corredora inmobiliaria y acompaño decisiones de compra, venta e inversión con una forma de trabajar personal, clara y profesional. Mi objetivo es que cada cliente pueda avanzar entendiendo el proceso, evaluando sus opciones y sintiéndose acompañado de principio a fin.
             </p>
 
