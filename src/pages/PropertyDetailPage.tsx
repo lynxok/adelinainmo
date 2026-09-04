@@ -21,7 +21,7 @@ import {
   X,
   ZoomIn,
 } from 'lucide-react';
-import { getWhatsAppInquiryUrl, generateColleagueWhatsAppText } from '../lib/whatsappUtils';
+import { getWhatsAppInquiryUrl, generateColleagueWhatsAppText, getWhatsAppGeneralUrl } from '../lib/whatsappUtils';
 import { leadService, getPropertyTypeLabel } from '../lib/supabase';
 
 const InstagramIcon: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
@@ -582,6 +582,38 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
               </button>
             </div>
 
+          </div>
+        </div>
+
+        {/* Banner: ¿Querés tasar o vender una propiedad similar? */}
+        <div className="mt-14 bg-gradient-to-r from-adelina-dark via-zinc-900 to-adelina-dark text-white rounded-[25px] p-8 sm:p-10 border border-zinc-800 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="space-y-2 text-center md:text-left">
+            <span className="text-adelina-accent text-[11px] font-archivo font-bold uppercase tracking-widest block">
+              Servicio de Tasación Profesional
+            </span>
+            <h3 className="font-archivo text-2xl sm:text-3xl font-semibold tracking-tight">
+              ¿Querés conocer el valor actual de tu propiedad?
+            </h3>
+            <p className="font-archivo text-zinc-300 text-xs sm:text-sm font-light max-w-xl">
+              Te acompaño con una tasación profesional y una mirada clara para que puedas avanzar con mayor seguridad.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <button
+              onClick={() => onNavigate('valuation')}
+              className="bg-adelina-accent hover:bg-adelina-gold text-adelina-dark font-archivo font-bold px-6 py-3 rounded-full text-xs transition-all shadow-md active:scale-95"
+            >
+              <span>Solicitar Tasación</span>
+            </button>
+            <a
+              href={getWhatsAppGeneralUrl('Consulta por Tasación de Inmueble')}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border border-white/20 hover:border-white/40 text-white font-archivo font-medium px-5 py-3 rounded-full text-xs transition-colors flex items-center gap-2"
+            >
+              <MessageCircle className="w-4 h-4 text-emerald-400" />
+              <span>WhatsApp</span>
+            </a>
           </div>
         </div>
 

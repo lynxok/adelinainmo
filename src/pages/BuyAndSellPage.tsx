@@ -595,10 +595,10 @@ export const BuyAndSellPage: React.FC<BuyAndSellPageProps> = ({
               <span>Para Propietarios</span>
             </div>
             <h2 className="font-archivo text-3xl sm:text-4xl lg:text-5xl font-light tracking-tight">
-              ¿Querés vender o tasar tu propiedad?
+              ¿Querés conocer el valor actual de tu propiedad?
             </h2>
             <p className="font-archivo text-zinc-300 text-sm sm:text-base font-light leading-relaxed max-w-xl">
-              Te acompaño de forma personalizada durante todo el proceso. Realizamos un estudio de mercado riguroso para definir el valor real, preparamos tu propiedad con producción fotográfica profesional y la difundimos activamente en los principales portales del país.
+              Te acompaño con una tasación profesional y una mirada clara para que puedas avanzar con mayor seguridad.
             </p>
 
             {/* Benefit Bullets */}

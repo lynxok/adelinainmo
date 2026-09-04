@@ -59,7 +59,10 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             </div>
 
             <div className="space-y-1">
-              <span className="text-zinc-300 block font-archivo text-xs sm:text-sm font-light">
+              <span className="text-zinc-400 block font-archivo text-xs tracking-wider invisible select-none" aria-hidden="true">
+                &nbsp;
+              </span>
+              <span className="text-zinc-300 block font-archivo text-xs sm:text-sm font-light min-h-[24px] sm:min-h-[28px] flex items-center">
                 Paraná, Entre Ríos, Argentina - 2026
               </span>
             </div>

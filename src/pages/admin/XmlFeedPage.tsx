@@ -17,8 +17,19 @@ export const XmlFeedPage: React.FC<XmlFeedPageProps> = ({ properties }) => {
     const xmlHeader = `<?xml version="1.0" encoding="UTF-8"?>\n<inmuebles version="2.0" agencia="Adelina Lujan Inmobiliaria" fecha="${new Date().toISOString()}">\n`;
     
     const items = availableProperties.map((p) => {
-      const imagesXml = p.images.map((img) => `      <foto>${window.location.origin}${img}</foto>`).join('\n');
-      const amenitiesXml = p.amenities.map((a) => `      <caracteristica>${a}</caracteristica>`).join('\n');
+      const formatImageUrl = (img: string) => {
+        if (!img) return '';
+        if (img.startsWith('http://') || img.startsWith('https://')) return img;
+        return `${window.location.origin}${img.startsWith('/') ? img : `/${img}`}`;
+      };
+
+      const imagesXml = (p.images || [])
+        .map(formatImageUrl)
+        .filter(Boolean)
+        .map((url) => `      <foto>${url}</foto>`)
+        .join('\n');
+
+      const amenitiesXml = (p.amenities || []).map((a) => `      <caracteristica>${a}</caracteristica>`).join('\n');
 
       return `  <inmueble id="${p.id}" codigo="${p.slug}">
     <titulo><![CDATA[${p.title}]]></titulo>
