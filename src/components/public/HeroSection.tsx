@@ -11,7 +11,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
       {/* Background Image from Figma */}
       <div className="absolute inset-0 z-0">
         <img
-          src="/assets/hero-living.jpg"
+          src="/assets/foto-inicial.png"
           alt="Interior Inmobiliario"
           className="w-full h-full object-cover object-center"
         />
