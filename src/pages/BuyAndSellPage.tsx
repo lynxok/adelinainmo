@@ -199,7 +199,7 @@ export const BuyAndSellPage: React.FC<BuyAndSellPageProps> = ({
           {/* Operation switch buttons: Comprar / Vender / Todos */}
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-4 border-b border-white/40">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-600 mr-1 hidden sm:inline">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-white/90 mr-1 hidden sm:inline drop-shadow-sm">
                 Operación:
               </span>
               <button
@@ -208,7 +208,7 @@ export const BuyAndSellPage: React.FC<BuyAndSellPageProps> = ({
                 className={`px-4 py-2 rounded-full text-xs font-archivo font-medium transition-all ${
                   operation === 'all'
                     ? 'bg-adelina-dark text-white shadow-sm ring-1 ring-white/20'
-                    : 'bg-white/40 hover:bg-white/70 text-zinc-800 border border-white/60 backdrop-blur-sm shadow-sm'
+                    : 'bg-white/70 hover:bg-white text-zinc-900 border border-white/80 backdrop-blur-sm shadow-sm'
                 }`}
               >
                 Todas
@@ -219,7 +219,7 @@ export const BuyAndSellPage: React.FC<BuyAndSellPageProps> = ({
                 className={`px-4 py-2 rounded-full text-xs font-archivo font-medium transition-all ${
                   operation === 'sale'
                     ? 'bg-adelina-dark text-white shadow-sm ring-1 ring-white/20'
-                    : 'bg-white/40 hover:bg-white/70 text-zinc-800 border border-white/60 backdrop-blur-sm shadow-sm'
+                    : 'bg-white/70 hover:bg-white text-zinc-900 border border-white/80 backdrop-blur-sm shadow-sm'
                 }`}
               >
                 Comprar / Venta
@@ -230,7 +230,7 @@ export const BuyAndSellPage: React.FC<BuyAndSellPageProps> = ({
                 className={`px-4 py-2 rounded-full text-xs font-archivo font-medium transition-all ${
                   operation === 'rent'
                     ? 'bg-adelina-dark text-white shadow-sm ring-1 ring-white/20'
-                    : 'bg-white/40 hover:bg-white/70 text-zinc-800 border border-white/60 backdrop-blur-sm shadow-sm'
+                    : 'bg-white/70 hover:bg-white text-zinc-900 border border-white/80 backdrop-blur-sm shadow-sm'
                 }`}
               >
                 Alquiler
@@ -243,10 +243,10 @@ export const BuyAndSellPage: React.FC<BuyAndSellPageProps> = ({
                 const el = document.getElementById('seccion-vender');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="inline-flex items-center gap-1.5 text-xs text-adelina-accent hover:text-adelina-gold hover:underline font-semibold transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs text-white hover:text-adelina-accent hover:underline font-medium transition-colors drop-shadow-sm"
             >
               <span>¿Querés tasar o vender tu propiedad?</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3.5 h-3.5 text-white/90" />
             </button>
           </div>
 
