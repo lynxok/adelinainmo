@@ -5,6 +5,7 @@ import { Navbar } from './components/public/Navbar';
 import { Footer } from './components/public/Footer';
 import { HomePage } from './pages/HomePage';
 import { PropertiesCatalogPage } from './pages/PropertiesCatalogPage';
+import { BuyAndSellPage } from './pages/BuyAndSellPage';
 import { PropertyDetailPage } from './pages/PropertyDetailPage';
 import { PropertyColleaguePage } from './pages/PropertyColleaguePage';
 import { ValuationPage } from './pages/ValuationPage';
@@ -21,7 +22,7 @@ import { XmlFeedPage } from './pages/admin/XmlFeedPage';
 export function App() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [currentView, setCurrentView] = useState<'home' | 'catalog' | 'detail' | 'colleague' | 'valuation' | 'admin' | 'about'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'catalog' | 'buy-sell' | 'detail' | 'colleague' | 'valuation' | 'admin' | 'about'>('home');
   const [selectedPropertySlug, setSelectedPropertySlug] = useState<string>('');
   const [catalogFilters, setCatalogFilters] = useState<PropertyFilter | undefined>(undefined);
 
@@ -67,7 +68,7 @@ export function App() {
     if (view === 'home') {
       setCurrentView('home');
       setSelectedPropertySlug('');
-    } else if (view === 'catalog') {
+    } else if (view === 'buy-sell' || view === 'catalog') {
       if (param?.startsWith('category:')) {
         const catSlug = param.replace('category:', '');
         setCatalogFilters({ type: catSlug });
@@ -78,7 +79,7 @@ export function App() {
       } else {
         setCatalogFilters(undefined);
       }
-      setCurrentView('catalog');
+      setCurrentView('buy-sell');
     } else if (view === 'valuation') {
       setCurrentView('valuation');
     } else if (view === 'about') {
@@ -100,7 +101,7 @@ export function App() {
       type: filters.type,
       location: filters.location,
     });
-    setCurrentView('catalog');
+    setCurrentView('buy-sell');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -217,10 +218,11 @@ export function App() {
           />
         )}
 
-        {currentView === 'catalog' && (
-          <PropertiesCatalogPage
+        {(currentView === 'buy-sell' || currentView === 'catalog') && (
+          <BuyAndSellPage
             properties={properties}
             onSelectProperty={handleSelectProperty}
+            onNavigate={handleNavigate}
             initialFilters={catalogFilters}
           />
         )}
@@ -228,7 +230,7 @@ export function App() {
         {currentView === 'detail' && activeProperty && (
           <PropertyDetailPage
             property={activeProperty}
-            onBack={() => setCurrentView('catalog')}
+            onBack={() => setCurrentView('buy-sell')}
             onNavigate={handleNavigate}
           />
         )}

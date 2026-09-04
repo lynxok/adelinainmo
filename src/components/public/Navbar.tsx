@@ -106,7 +106,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView }) => {
                     <button
                       key={cat.id}
                       onClick={() => {
-                        onNavigate('catalog', `category:${cat.slug}`);
+                        onNavigate('buy-sell', `category:${cat.slug}`);
                         setDesktopDropdownOpen(false);
                       }}
                       className="w-full text-left px-4 py-2.5 text-xs text-zinc-200 hover:text-adelina-accent hover:bg-white/5 transition-all flex items-center justify-between group"
@@ -120,7 +120,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView }) => {
                   <div className="border-t border-white/10 my-1"></div>
                   <button
                     onClick={() => {
-                      onNavigate('catalog');
+                      onNavigate('buy-sell');
                       setDesktopDropdownOpen(false);
                     }}
                     className="w-full text-left px-4 py-2 text-xs font-semibold text-adelina-accent hover:bg-white/5 transition-colors flex items-center justify-between"
@@ -134,16 +134,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView }) => {
           </div>
 
           <button
-            onClick={() => onNavigate('catalog', 'operation:sale')}
-            className="hover:text-adelina-accent transition-colors text-zinc-200"
+            onClick={() => onNavigate('buy-sell')}
+            className={`hover:text-adelina-accent transition-colors ${
+              currentView === 'buy-sell' ? 'text-adelina-accent font-medium' : 'text-zinc-200'
+            }`}
           >
-            Comprar
-          </button>
-          <button
-            onClick={() => onNavigate('valuation')}
-            className="hover:text-adelina-accent transition-colors text-zinc-200"
-          >
-            Vender / Tasaciones
+            Comprar y Vender
           </button>
           <button
             onClick={() => onNavigate('about')}
@@ -217,7 +213,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView }) => {
               <div className="pl-3 pb-2 space-y-2 pt-1 border-l border-adelina-accent/40 ml-2 mt-1">
                 <button
                   onClick={() => {
-                    onNavigate('catalog');
+                    onNavigate('buy-sell');
                     setMobileMenuOpen(false);
                   }}
                   className="block w-full text-left py-1 text-sm font-medium text-adelina-accent"
@@ -228,7 +224,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView }) => {
                   <button
                     key={cat.id}
                     onClick={() => {
-                      onNavigate('catalog', `category:${cat.slug}`);
+                      onNavigate('buy-sell', `category:${cat.slug}`);
                       setMobileMenuOpen(false);
                     }}
                     className="block w-full text-left py-1.5 text-sm text-zinc-300 hover:text-white"
@@ -241,16 +237,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView }) => {
           </div>
 
           <button
-            onClick={() => { onNavigate('catalog', 'operation:sale'); setMobileMenuOpen(false); }}
-            className="block w-full text-left py-2 text-lg border-b border-zinc-800"
+            onClick={() => {
+              onNavigate('buy-sell');
+              setMobileMenuOpen(false);
+            }}
+            className={`block w-full text-left py-2 text-lg border-b border-zinc-800 ${
+              currentView === 'buy-sell' ? 'text-adelina-accent font-medium' : 'text-zinc-200'
+            }`}
           >
-            Comprar
-          </button>
-          <button
-            onClick={() => { onNavigate('valuation'); setMobileMenuOpen(false); }}
-            className="block w-full text-left py-2 text-lg border-b border-zinc-800"
-          >
-            Vender / Tasar Propiedad
+            Comprar y Vender
           </button>
           <button
             onClick={() => { 

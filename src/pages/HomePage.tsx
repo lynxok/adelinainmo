@@ -41,7 +41,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       <FeaturedProperties
         properties={properties}
         onSelectProperty={onSelectProperty}
-        onViewAll={() => onNavigate('catalog')}
+        onViewAll={() => onNavigate('buy-sell')}
       />
 
       {/* 6. Metodología / Proceso (Un proceso claro, de principio a fin. + Pasos 01, 02, 03, 04) */}

@@ -101,7 +101,7 @@ export const AboutAdelinaPage: React.FC<AboutAdelinaPageProps> = ({ onNavigate }
               </a>
 
               <button
-                onClick={() => onNavigate('catalog')}
+                onClick={() => onNavigate('buy-sell')}
                 className="inline-flex items-center gap-2 border border-zinc-300 hover:border-zinc-800 bg-white hover:bg-zinc-50 text-zinc-700 hover:text-zinc-900 font-archivo text-xs uppercase tracking-[0.18em] px-8 py-4 rounded-full transition-all duration-200"
               >
                 <span>Ver Propiedades</span>
