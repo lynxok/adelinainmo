@@ -156,13 +156,13 @@ export const ValuationPage: React.FC = () => {
 
             {/* Right Image Column */}
             <div className="lg:col-span-6">
-              <div className="relative aspect-[4/3] sm:aspect-[16/11] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-zinc-100 group">
+              <div className="relative aspect-[4/3] sm:aspect-[4/3] lg:aspect-[3/4] max-h-[520px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-zinc-100 group">
                 <img
-                  src="/assets/chic-living.jpg"
+                  src="/assets/valuation-interior.jpg"
                   alt="Interior de diseño exclusivo - Tasaciones Adelina Luján"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-50" />
                 
                 {/* Floating Badge */}
                 <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-white/40 shadow-lg">
