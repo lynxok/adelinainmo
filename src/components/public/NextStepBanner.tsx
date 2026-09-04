@@ -19,7 +19,7 @@ export const NextStepBanner: React.FC = () => {
             ACOMPAÑÁNDOTE EN <br />
             TU PRÓXIMO PASO
           </h2>
-          <p className="font-poppins text-xs sm:text-sm text-zinc-700 font-light max-w-md">
+          <p className="font-archivo text-xs sm:text-sm text-zinc-700 font-light max-w-md">
             Una decisión inmobiliaria puede abrir una etapa nueva.
           </p>
         </div>

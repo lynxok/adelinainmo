@@ -77,7 +77,7 @@ export const AboutAdelinaPage: React.FC<AboutAdelinaPageProps> = ({ onNavigate }
               </p>
             </div>
 
-            <div className="space-y-4 font-poppins text-xs sm:text-sm lg:text-[15px] text-zinc-700 font-light leading-relaxed">
+            <div className="space-y-4 font-archivo text-xs sm:text-sm lg:text-[15px] text-zinc-700 font-light leading-relaxed">
               <p>
                 Acompaño a personas y familias en procesos de compra, venta y tasación de propiedades, con una forma de trabajar cercana, clara y personalizada. Para mí, cada operación inmobiliaria implica mucho más que una transacción: detrás de cada decisión hay proyectos, expectativas y momentos importantes de la vida.
               </p>

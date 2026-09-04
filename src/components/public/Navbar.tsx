@@ -39,7 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView }) => {
         </button>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-8 font-poppins text-sm font-normal">
+        <nav className="hidden md:flex items-center gap-8 font-archivo text-sm font-normal">
           <button
             onClick={() => onNavigate('home')}
             className={`hover:text-adelina-accent transition-colors ${currentView === 'home' ? 'text-adelina-accent font-medium' : 'text-zinc-200'}`}

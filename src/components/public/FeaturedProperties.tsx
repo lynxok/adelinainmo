@@ -147,10 +147,10 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
                 <h3 className="font-archivo text-base sm:text-lg font-bold text-zinc-900">
                   {prop.title}
                 </h3>
-                <p className="font-poppins text-xs text-zinc-400 font-light">
+                <p className="font-archivo text-xs text-zinc-400 font-light">
                   {prop.location}
                 </p>
-                <p className="font-poppins text-xs text-zinc-500 font-light pt-0.5">
+                <p className="font-archivo text-xs text-zinc-500 font-light pt-0.5">
                   {prop.specs}
                 </p>
                 <div className="pt-3 font-archivo text-lg sm:text-xl font-bold text-zinc-900 tracking-tight">
@@ -187,10 +187,10 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
                 <h3 className="font-archivo text-base font-bold text-zinc-900">
                   {prop.title}
                 </h3>
-                <p className="font-poppins text-xs text-zinc-400 font-light">
+                <p className="font-archivo text-xs text-zinc-400 font-light">
                   {prop.location}
                 </p>
-                <p className="font-poppins text-xs text-zinc-500 font-light pt-0.5">
+                <p className="font-archivo text-xs text-zinc-500 font-light pt-0.5">
                   {prop.specs}
                 </p>
                 <div className="pt-2 font-archivo text-lg font-bold text-zinc-900 tracking-tight">

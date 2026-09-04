@@ -20,7 +20,7 @@ export const BrandManifestoSection: React.FC = () => {
         </h2>
 
         {/* Explanatory paragraph from Figma */}
-        <p className="font-poppins text-xs sm:text-sm lg:text-base text-zinc-600 font-light leading-relaxed max-w-2xl mx-auto">
+        <p className="font-archivo text-xs sm:text-sm lg:text-base text-zinc-600 font-light leading-relaxed max-w-2xl mx-auto">
           Comprar, vender o invertir implica patrimonio, expectativas y proyectos personales. 
           Mi forma de trabajar combina escucha activa, respuesta ágil, transparencia y seguimiento para que cada etapa resulte más clara y segura.
         </p>

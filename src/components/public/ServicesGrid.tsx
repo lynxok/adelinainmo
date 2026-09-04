@@ -16,10 +16,10 @@ export const ServicesGrid: React.FC<ServicesGridProps> = ({ onNavigate }) => {
             ¿EN QUÉ PUEDO ACOMPAÑARTE?
           </h2>
           <div className="space-y-1">
-            <p className="font-poppins text-sm sm:text-base font-normal text-zinc-800">
+            <p className="font-archivo text-sm sm:text-base font-normal text-zinc-800">
               Cada operación parte de una necesidad distinta.
             </p>
-            <p className="font-poppins text-xs sm:text-sm text-zinc-500 font-light">
+            <p className="font-archivo text-xs sm:text-sm text-zinc-500 font-light">
               Por eso el asesoramiento se adapta a tu momento, tus objetivos y la decisión que necesitás tomar.
             </p>
           </div>
@@ -42,7 +42,7 @@ export const ServicesGrid: React.FC<ServicesGridProps> = ({ onNavigate }) => {
               <h3 className="font-archivo text-base sm:text-lg font-normal tracking-[0.25em] text-zinc-900 uppercase">
                 COMPRAR
               </h3>
-              <p className="font-poppins text-xs sm:text-[13px] text-zinc-600 font-light leading-relaxed max-w-xs mx-auto">
+              <p className="font-archivo text-xs sm:text-[13px] text-zinc-600 font-light leading-relaxed max-w-xs mx-auto">
                 Te acompaño a encontrar la propiedad que se adapta a tu estilo de vida y a tus objetivos, analizando cada opción con criterio y detalle.
               </p>
             </div>
@@ -64,7 +64,7 @@ export const ServicesGrid: React.FC<ServicesGridProps> = ({ onNavigate }) => {
               <h3 className="font-archivo text-base sm:text-lg font-normal tracking-[0.25em] text-zinc-900 uppercase">
                 VENDER
               </h3>
-              <p className="font-poppins text-xs sm:text-[13px] text-zinc-600 font-light leading-relaxed max-w-xs mx-auto">
+              <p className="font-archivo text-xs sm:text-[13px] text-zinc-600 font-light leading-relaxed max-w-xs mx-auto">
                 Te asesoro para posicionar y vender tu propiedad de la mejor manera, cuidando cada paso del proceso para lograr el mejor resultado.
               </p>
             </div>
@@ -86,7 +86,7 @@ export const ServicesGrid: React.FC<ServicesGridProps> = ({ onNavigate }) => {
               <h3 className="font-archivo text-base sm:text-lg font-normal tracking-[0.25em] text-zinc-900 uppercase">
                 INVERTIR
               </h3>
-              <p className="font-poppins text-xs sm:text-[13px] text-zinc-600 font-light leading-relaxed max-w-xs mx-auto">
+              <p className="font-archivo text-xs sm:text-[13px] text-zinc-600 font-light leading-relaxed max-w-xs mx-auto">
                 Te ayudo a identificar oportunidades inmobiliarias y a tomar decisiones estratégicas con mayor seguridad y proyección.
               </p>
             </div>

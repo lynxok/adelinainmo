@@ -27,7 +27,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                 href="https://wa.me/5493433001534"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-zinc-200 hover:text-white transition-colors block font-poppins text-xs sm:text-sm"
+                className="text-zinc-200 hover:text-white transition-colors block font-archivo text-xs sm:text-sm"
               >
                 343 300 1 534
               </a>
@@ -39,7 +39,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                 href="https://instagram.com/adelinalujan.propiedades"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-zinc-200 hover:text-white transition-colors block font-poppins text-xs sm:text-sm"
+                className="text-zinc-200 hover:text-white transition-colors block font-archivo text-xs sm:text-sm"
               >
                 @adelinalujan.propiedades
               </a>
@@ -52,7 +52,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               <span className="text-zinc-400 block font-normal text-[11px]">Email:</span>
               <a
                 href="mailto:adelinalujan93@gmail.com"
-                className="text-zinc-200 hover:text-white transition-colors block font-poppins text-xs sm:text-sm"
+                className="text-zinc-200 hover:text-white transition-colors block font-archivo text-xs sm:text-sm"
               >
                 adelinalujan93@gmail.com
               </a>

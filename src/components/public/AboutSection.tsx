@@ -36,7 +36,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
             </h2>
 
             {/* Paragraph Text */}
-            <p className="font-poppins text-xs sm:text-sm lg:text-[15px] text-zinc-700 font-light leading-relaxed max-w-lg">
+            <p className="font-archivo text-xs sm:text-sm lg:text-[15px] text-zinc-700 font-light leading-relaxed max-w-lg">
               Soy Adelina Luján corredora inmobiliaria y acompaño decisiones de compra, venta e inversión con una forma de trabajar personal, clara y profesional. Mi objetivo es que cada cliente pueda avanzar entendiendo el proceso, evaluando sus opciones y sintiéndose acompañado de principio a fin.
             </p>
 

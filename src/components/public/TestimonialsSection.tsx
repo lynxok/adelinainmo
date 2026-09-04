@@ -120,7 +120,7 @@ export const TestimonialsSection: React.FC = () => {
                 </div>
 
                 {/* Quote Text */}
-                <p className="font-poppins text-[10.5px] text-zinc-600 font-light leading-relaxed px-1">
+                <p className="font-archivo text-[10.5px] text-zinc-600 font-light leading-relaxed px-1">
                   {item.quote}
                 </p>
               </div>
@@ -173,7 +173,7 @@ export const TestimonialsSection: React.FC = () => {
                   </div>
 
                   {/* Quote Text */}
-                  <p className="font-poppins text-xs text-zinc-600 font-light leading-relaxed px-1">
+                  <p className="font-archivo text-xs text-zinc-600 font-light leading-relaxed px-1">
                     {item.quote}
                   </p>
                 </div>

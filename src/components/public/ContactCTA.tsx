@@ -12,7 +12,7 @@ export const ContactCTA: React.FC = () => {
             EN TU PRÓXIMO PASO?
           </h2>
 
-          <p className="font-poppins text-xs sm:text-sm text-zinc-700 font-light leading-relaxed max-w-sm">
+          <p className="font-archivo text-xs sm:text-sm text-zinc-700 font-light leading-relaxed max-w-sm">
             Contame qué necesitás y vemos juntos cuál es la mejor manera de avanzar.
           </p>
 

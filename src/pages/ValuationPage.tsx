@@ -50,7 +50,7 @@ export const ValuationPage: React.FC = () => {
         <h1 className="font-archivo text-3xl sm:text-4xl font-bold text-adelina-dark tracking-tight">
           Tasá y Vendé tu Propiedad
         </h1>
-        <p className="font-poppins text-zinc-500 text-sm font-light leading-relaxed">
+        <p className="font-archivo text-zinc-500 text-sm font-light leading-relaxed">
           Determinamos el valor real y competitivo de tu inmueble con análisis comparativo de mercado y asesoramiento personalizado.
         </p>
       </div>

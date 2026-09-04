@@ -160,7 +160,7 @@ export const PropertyColleaguePage: React.FC<PropertyColleaguePageProps> = ({ pr
           {/* Description */}
           <div className="space-y-3 pt-4 border-t border-zinc-100">
             <h3 className="font-archivo text-lg font-bold text-zinc-900">Detalles y Memoria Descriptiva</h3>
-            <p className="font-poppins text-zinc-600 text-sm leading-relaxed whitespace-pre-line font-light">
+            <p className="font-archivo text-zinc-600 text-sm leading-relaxed whitespace-pre-line font-light">
               {property.description}
             </p>
           </div>

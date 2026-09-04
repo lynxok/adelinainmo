@@ -71,7 +71,7 @@ export const WorkProcessSection: React.FC = () => {
             <h2 className="font-archivo text-xl sm:text-2xl lg:text-[26px] font-normal text-zinc-900 tracking-tight leading-snug">
               Un proceso claro, de principio a fin.
             </h2>
-            <p className="font-poppins text-xs sm:text-[13px] text-zinc-600 font-light leading-relaxed max-w-sm">
+            <p className="font-archivo text-xs sm:text-[13px] text-zinc-600 font-light leading-relaxed max-w-sm">
               Cada búsqueda u operación es diferente, pero el acompañamiento mantiene una misma lógica: entender, analizar, avanzar y acompañar hasta el cierre.
             </p>
           </div>
@@ -88,7 +88,7 @@ export const WorkProcessSection: React.FC = () => {
                 <div className="font-archivo text-3xl sm:text-4xl lg:text-[44px] font-bold text-zinc-900 tracking-tighter leading-none">
                   {step.number}
                 </div>
-                <p className="font-poppins text-xs sm:text-[12px] text-zinc-600 font-normal leading-snug max-w-[150px]">
+                <p className="font-archivo text-xs sm:text-[12px] text-zinc-600 font-normal leading-snug max-w-[150px]">
                   {step.text}
                 </p>
               </div>
@@ -111,7 +111,7 @@ export const WorkProcessSection: React.FC = () => {
                     <span className="text-[10px] font-archivo font-semibold tracking-widest text-zinc-400 uppercase">
                       Paso 0{idx + 1}
                     </span>
-                    <span className="text-[10px] font-poppins text-zinc-400">
+                    <span className="text-[10px] font-archivo text-zinc-400">
                       {idx + 1} de {steps.length}
                     </span>
                   </div>
@@ -120,7 +120,7 @@ export const WorkProcessSection: React.FC = () => {
                     {step.number}
                   </div>
 
-                  <p className="font-poppins text-xs text-zinc-700 font-medium leading-snug">
+                  <p className="font-archivo text-xs text-zinc-700 font-medium leading-snug">
                     {step.text}
                   </p>
                 </div>

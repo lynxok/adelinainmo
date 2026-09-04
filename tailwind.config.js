@@ -8,7 +8,8 @@ export default {
     extend: {
       fontFamily: {
         archivo: ['Archivo', 'sans-serif'],
-        poppins: ['Poppins', 'sans-serif'],
+        poppins: ['Archivo', 'sans-serif'],
+        sans: ['Archivo', 'sans-serif'],
       },
       colors: {
         adelina: {

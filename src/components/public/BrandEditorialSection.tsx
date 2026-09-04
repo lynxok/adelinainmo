@@ -16,7 +16,7 @@ export const BrandEditorialSection: React.FC = () => {
               Una decisión inmobiliaria <br />
               <span className="font-light text-zinc-600">puede abrir una etapa nueva.</span>
             </h2>
-            <p className="font-poppins text-xs sm:text-sm text-zinc-600 font-light leading-relaxed max-w-md">
+            <p className="font-archivo text-xs sm:text-sm text-zinc-600 font-light leading-relaxed max-w-md">
               Acompañándote en tu próximo paso con dedicación personalizada, transparencia en cada negociación y respaldo profesional.
             </p>
 
