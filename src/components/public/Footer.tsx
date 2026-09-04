@@ -6,7 +6,7 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   return (
-    <footer className="bg-[#141414] text-zinc-300 pt-20 pb-12 px-4 sm:px-6 lg:px-16 border-t border-zinc-900">
+    <footer id="contacto" className="bg-[#141414] text-zinc-300 pt-20 pb-12 px-4 sm:px-6 lg:px-16 border-t border-zinc-900 scroll-mt-20">
       <div className="max-w-6xl mx-auto space-y-16">
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-start">

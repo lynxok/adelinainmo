@@ -45,6 +45,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const handleScrollToContact = () => {
+    const el = document.getElementById('contacto');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+  };
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -147,10 +156,24 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView }) => {
           >
             Sobre Adelina
           </button>
+          <button
+            onClick={handleScrollToContact}
+            className="hover:text-adelina-accent transition-colors text-zinc-200"
+          >
+            Contacto
+          </button>
         </nav>
 
         {/* CTA Actions */}
-        <div className="hidden lg:flex items-center gap-4">
+        <div className="hidden lg:flex items-center gap-3">
+          <button
+            onClick={handleScrollToContact}
+            className="inline-flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white font-archivo font-medium px-4 py-2 rounded-full text-xs transition-all border border-white/20 backdrop-blur-sm active:scale-95"
+            title="Ir a sección de contacto"
+          >
+            <span>Contacto</span>
+          </button>
+
           <a
             href={getWhatsAppGeneralUrl()}
             target="_blank"
@@ -255,6 +278,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView }) => {
             className={`block w-full text-left py-2 text-lg border-b border-zinc-800 ${currentView === 'about' ? 'text-adelina-accent font-medium' : 'text-zinc-200'}`}
           >
             Sobre Adelina
+          </button>
+          <button
+            onClick={() => {
+              setMobileMenuOpen(false);
+              setTimeout(handleScrollToContact, 150);
+            }}
+            className="block w-full text-left py-2 text-lg border-b border-zinc-800 text-zinc-200 hover:text-adelina-accent transition-colors"
+          >
+            Contacto
           </button>
           <div className="pt-2">
             <a
