@@ -69,7 +69,8 @@ export const WorkProcessSection: React.FC = () => {
           {/* Left Column: Heading and description from Figma */}
           <div className="lg:col-span-4 space-y-3 pr-0 lg:pr-8">
             <h2 className="font-archivo text-xl sm:text-2xl lg:text-[26px] font-normal text-zinc-900 tracking-tight leading-snug">
-              Un proceso claro, de principio a fin.
+              Un proceso claro,<br />
+              de principio a&nbsp;fin.
             </h2>
             <p className="font-archivo text-xs sm:text-[13px] text-zinc-600 font-light leading-relaxed max-w-sm">
               Cada búsqueda u operación es diferente, pero el acompañamiento mantiene una misma lógica: entender, analizar, avanzar y acompañar hasta el cierre.
