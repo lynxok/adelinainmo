@@ -62,27 +62,39 @@ export const ValuationPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-adelina-light min-h-screen text-adelina-dark pt-28 pb-24">
-      {/* 1. HERO / BANNER HEADER */}
-      <section className="px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto mb-16 sm:mb-20">
-        <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-adelina-border text-adelina-accent text-[11px] font-archivo font-semibold uppercase tracking-widest shadow-sm">
+    <div className="bg-adelina-light min-h-screen text-adelina-dark pb-24">
+      {/* 1. HERO / BANNER HEADER CON FOTO DE FONDO */}
+      <section className="relative min-h-[480px] sm:min-h-[540px] flex flex-col justify-center items-center pt-32 pb-20 sm:pb-24 px-4 sm:px-6 lg:px-12 overflow-hidden mb-12 sm:mb-16">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/assets/tarjeta-bg.png"
+            alt="Tasación Inmobiliaria"
+            className="w-full h-full object-cover object-center"
+          />
+          {/* Subtle Dark Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/60 to-black/80" />
+        </div>
+
+        {/* Hero Content */}
+        <div className="relative z-10 text-center max-w-3xl mx-auto space-y-4">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-adelina-accent text-[11px] font-archivo font-semibold uppercase tracking-widest shadow-sm">
             <Award className="w-3.5 h-3.5" />
             <span>Tasaciones Profesionales • Matrícula N° 1789</span>
           </div>
 
-          <h1 className="font-archivo text-3xl sm:text-5xl lg:text-6xl font-light text-adelina-dark tracking-tight leading-[1.12]">
+          <h1 className="font-archivo text-3xl sm:text-5xl lg:text-6xl font-light text-white tracking-tight leading-[1.12]">
             Tasá y Vendé tu Propiedad
           </h1>
 
-          <p className="font-archivo text-zinc-600 text-sm sm:text-base font-light leading-relaxed max-w-2xl mx-auto">
+          <p className="font-archivo text-zinc-200 text-sm sm:text-base font-light leading-relaxed max-w-2xl mx-auto">
             Determinamos el valor real y competitivo de tu inmueble en Paraná y Entre Ríos mediante análisis comparativo de mercado riguroso y asesoramiento personalizado.
           </p>
 
           <div className="pt-2 flex flex-wrap justify-center gap-3">
             <button
               onClick={scrollToForm}
-              className="inline-flex items-center gap-2 bg-adelina-dark hover:bg-black text-white text-xs sm:text-sm font-archivo font-medium px-6 py-3 rounded-full transition-all shadow-md active:scale-95"
+              className="inline-flex items-center gap-2 bg-white hover:bg-zinc-100 text-adelina-dark text-xs sm:text-sm font-archivo font-medium px-6 py-3 rounded-full transition-all shadow-md active:scale-95"
             >
               <span>Completar Formulario Online</span>
               <ArrowDown className="w-4 h-4 text-adelina-accent" />
