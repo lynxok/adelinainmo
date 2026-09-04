@@ -3,7 +3,7 @@ import { getWhatsAppGeneralUrl } from '../../lib/whatsappUtils';
 
 export const ContactCTA: React.FC = () => {
   return (
-    <section id="contacto" className="w-full bg-[#DAD3C8] overflow-hidden">
+    <section id="proximo-paso" className="w-full bg-[#DAD3C8] overflow-hidden">
       <div className="grid grid-cols-1 md:grid-cols-12 min-h-[420px] lg:min-h-[480px]">
         {/* Left Half: Editorial Call to Action */}
         <div className="md:col-span-6 flex flex-col justify-center px-8 sm:px-12 lg:px-20 py-16 space-y-6">

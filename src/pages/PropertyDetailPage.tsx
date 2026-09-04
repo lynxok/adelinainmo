@@ -85,7 +85,9 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
   const mapsSearchQuery = encodeURIComponent(
     `${property.address_approx || property.location_neighborhood || ''}, ${property.location_city || 'Paraná'}, Entre Ríos, Argentina`
   );
-  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${mapsSearchQuery}`;
+  const googleMapsUrl = property.google_maps_url?.trim()
+    ? property.google_maps_url.trim()
+    : `https://www.google.com/maps/search/?api=1&query=${mapsSearchQuery}`;
 
   // WhatsApp Schedule Visit URL
   const whatsappVisitText = encodeURIComponent(
@@ -549,7 +551,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
               </div>
               <div className="border-b border-zinc-200" />
 
-              {/* Button: Abrir en Google Maps */}
+              {/* Button: Ver en Google Maps */}
               <a
                 href={googleMapsUrl}
                 target="_blank"
@@ -557,7 +559,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                 className="w-full bg-[#404040] hover:bg-[#202020] text-white py-3.5 px-4 rounded-[20px] font-archivo text-xs font-medium tracking-[0.15em] uppercase flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95"
               >
                 <MapPin className="w-4 h-4" />
-                <span>Abrir en Google Maps</span>
+                <span>Ver en Google Maps</span>
               </a>
             </div>
 

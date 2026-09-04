@@ -33,6 +33,7 @@ export interface Property {
   images: string[];
   featured_image?: string;
   is_featured: boolean;
+  google_maps_url?: string;
   status: PropertyStatus;
   created_at: string;
   updated_at: string;

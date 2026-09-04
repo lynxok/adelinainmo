@@ -48,7 +48,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView }) => {
   const handleScrollToContact = () => {
     const el = document.getElementById('contacto');
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else {
       window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }

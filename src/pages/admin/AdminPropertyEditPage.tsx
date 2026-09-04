@@ -80,6 +80,7 @@ export const AdminPropertyEditPage: React.FC<AdminPropertyEditPageProps> = ({
   const [locationCity, setLocationCity] = useState('Paraná');
   const [locationNeighborhood, setLocationNeighborhood] = useState('');
   const [addressApprox, setAddressApprox] = useState('');
+  const [googleMapsUrl, setGoogleMapsUrl] = useState('');
   const [bedrooms, setBedrooms] = useState<number>(2);
   const [bathrooms, setBathrooms] = useState<number>(1);
   const [garages, setGarages] = useState<number>(1);
@@ -112,6 +113,7 @@ export const AdminPropertyEditPage: React.FC<AdminPropertyEditPageProps> = ({
         setLocationCity(existing.location_city);
         setLocationNeighborhood(existing.location_neighborhood);
         setAddressApprox(existing.address_approx || '');
+        setGoogleMapsUrl(existing.google_maps_url || '');
         setBedrooms(existing.bedrooms);
         setBathrooms(existing.bathrooms);
         setGarages(existing.garages);
@@ -206,6 +208,7 @@ export const AdminPropertyEditPage: React.FC<AdminPropertyEditPageProps> = ({
       location_city: locationCity,
       location_neighborhood: locationNeighborhood,
       address_approx: addressApprox,
+      google_maps_url: googleMapsUrl.trim() || undefined,
       bedrooms: Number(bedrooms) || 0,
       bathrooms: Number(bathrooms) || 0,
       garages: Number(garages) || 0,
@@ -501,6 +504,22 @@ export const AdminPropertyEditPage: React.FC<AdminPropertyEditPageProps> = ({
                 className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-zinc-900 focus:outline-none focus:border-adelina-accent"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-zinc-700 mb-1">
+              Link de Google Maps (Ubicación exacta / Pin)
+            </label>
+            <input
+              type="url"
+              placeholder="Ej. https://maps.app.goo.gl/... o https://goo.gl/maps/..."
+              value={googleMapsUrl}
+              onChange={(e) => setGoogleMapsUrl(e.target.value)}
+              className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-zinc-900 focus:outline-none focus:border-adelina-accent"
+            />
+            <p className="text-[11px] text-zinc-400 font-light mt-1">
+              Este enlace se utilizará directamente cuando el usuario pulse el botón &quot;Ver en Google Maps&quot; en la Ficha Técnica del inmueble.
+            </p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
