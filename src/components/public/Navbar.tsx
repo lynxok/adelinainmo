@@ -48,8 +48,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView }) => {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? 'bg-adelina-dark/95 backdrop-blur-md text-white py-3.5 shadow-lg border-b border-white/10'
+        isScrolled || currentView === 'detail'
+          ? 'bg-[#303030]/95 backdrop-blur-md text-white py-3.5 shadow-md border-b border-white/10'
           : 'bg-gradient-to-b from-black/80 via-black/40 to-transparent text-white py-5'
       }`}
     >
