@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Property, Lead } from '../types/property';
+import { Property, Lead, PropertyCategory } from '../types/property';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://mock-supabase-adelina.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'mock-anon-key';
@@ -21,7 +21,7 @@ const INITIAL_PROPERTIES: Property[] = [
     slug: 'casa-en-barrio-privado-parana',
     description: 'Excelente propiedad de diseño contemporáneo ubicada en exclusivo barrio privado de Paraná. Cuenta con amplios ambientes integrados, cocina gourmet con isla, galería techada con asador, piscina con solárium y jardín parquizado. Terminaciones de primera categoría con aberturas DVH y calefacción central.',
     operation_type: 'sale',
-    property_type: 'house',
+    property_type: 'casas',
     price_usd: 185000,
     currency: 'USD',
     location_city: 'Paraná',
@@ -50,7 +50,7 @@ const INITIAL_PROPERTIES: Property[] = [
     slug: 'departamento-centro-parana',
     description: 'Impecable departamento de categoría en pleno microcentro de Paraná. Luminoso living comedor con balcón aterrazado y vistas abiertas a la ciudad. Dos dormitorios (principal en suite con vestidor), cocina independiente equipada y cochera cubierta en subsuelo.',
     operation_type: 'sale',
-    property_type: 'apartment',
+    property_type: 'departamentos',
     price_usd: 120000,
     currency: 'USD',
     location_city: 'Paraná',
@@ -79,7 +79,7 @@ const INITIAL_PROPERTIES: Property[] = [
     slug: 'terreno-lote-colonia-avellaneda',
     description: 'Gran lote residencial con entorno natural consolidado y excelente orientación solar. Servicios subterráneos de agua corriente, tendido eléctrico y alumbrado público. Ideal para desarrollo familiar o inversión con alto potencial de revalorización.',
     operation_type: 'sale',
-    property_type: 'land',
+    property_type: 'lotes',
     price_usd: 38000,
     currency: 'USD',
     location_city: 'Colonia Avellaneda',
@@ -107,7 +107,7 @@ const INITIAL_PROPERTIES: Property[] = [
     slug: 'casa-quinta-parque-piscina',
     description: 'Propiedad ideal para descanso o vivienda permanente. Amplia galería perimetral, quincho cerrado para 30 personas con asador, horno a leña y pileta de 10x4 metros. Arboleda añeja y parque totalmente cercado.',
     operation_type: 'sale',
-    property_type: 'house',
+    property_type: 'quintas',
     price_usd: 145000,
     currency: 'USD',
     location_city: 'Paraná',
@@ -124,6 +124,34 @@ const INITIAL_PROPERTIES: Property[] = [
       '/assets/property-house-private.jpg'
     ],
     featured_image: '/assets/chic-living.jpg',
+    is_featured: false,
+    status: 'available',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'prop-5',
+    title: 'Cochera Cubierta en Microcentro',
+    slug: 'cochera-cubierta-microcentro-parana',
+    description: 'Cochera fija cubierta con portón automatizado a control remoto y cámaras de seguridad 24 hs en pleno microcentro de Paraná. Excelente maniobrabilidad.',
+    operation_type: 'sale',
+    property_type: 'cocheras',
+    price_usd: 12000,
+    currency: 'USD',
+    location_city: 'Paraná',
+    location_neighborhood: 'Centro',
+    address_approx: 'Zona Microcentro / Peatonal San Martín',
+    bedrooms: 0,
+    bathrooms: 0,
+    garages: 1,
+    covered_area_sqm: 14,
+    total_area_sqm: 14,
+    amenities: ['Portón automatizado', 'Seguridad 24hs', 'Fácil acceso'],
+    images: [
+      '/assets/hero-living.jpg',
+      '/assets/property-dept-center.jpg'
+    ],
+    featured_image: '/assets/hero-living.jpg',
     is_featured: false,
     status: 'available',
     created_at: new Date().toISOString(),
@@ -282,4 +310,158 @@ export const leadService = {
       localStorage.setItem(STORAGE_LEADS_KEY, JSON.stringify(leads));
     }
   }
+};
+
+// ==========================================
+// CATEGORIES SERVICE & HELPERS
+// ==========================================
+const STORAGE_CATEGORIES_KEY = 'adelina_categories_data_v1';
+
+export const INITIAL_CATEGORIES: PropertyCategory[] = [
+  { id: 'cat-casas', name: 'Casas', slug: 'casas', description: 'Casas y residencias en zonas urbanas y barrios cerrados', order: 1 },
+  { id: 'cat-deptos', name: 'Departamentos', slug: 'departamentos', description: 'Departamentos de categoría céntricos y residenciales', order: 2 },
+  { id: 'cat-lotes', name: 'Lotes', slug: 'lotes', description: 'Terrenos, lotes en loteos y desarrollos', order: 3 },
+  { id: 'cat-cocheras', name: 'Cocheras', slug: 'cocheras', description: 'Cocheras y espacios de guardado cubiertos', order: 4 },
+  { id: 'cat-quintas', name: 'Quintas', slug: 'quintas', description: 'Casas quintas de fin de semana y chacras con parque', order: 5 },
+];
+
+export const notifyCategoriesChanged = () => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('adelina-categories-changed'));
+  }
+};
+
+export const categoryService = {
+  getCategories(): PropertyCategory[] {
+    const raw = localStorage.getItem(STORAGE_CATEGORIES_KEY);
+    if (!raw) {
+      localStorage.setItem(STORAGE_CATEGORIES_KEY, JSON.stringify(INITIAL_CATEGORIES));
+      return INITIAL_CATEGORIES;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_CATEGORIES;
+    } catch {
+      return INITIAL_CATEGORIES;
+    }
+  },
+
+  saveCategory(cat: Omit<PropertyCategory, 'id' | 'slug'> & { id?: string; slug?: string }): PropertyCategory {
+    const categories = this.getCategories();
+    const slug = (cat.slug || cat.name)
+      .toLowerCase()
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+
+    if (cat.id) {
+      const index = categories.findIndex(c => c.id === cat.id);
+      if (index >= 0) {
+        const updated: PropertyCategory = {
+          ...categories[index],
+          name: cat.name.trim(),
+          slug,
+          description: cat.description,
+        };
+        categories[index] = updated;
+        localStorage.setItem(STORAGE_CATEGORIES_KEY, JSON.stringify(categories));
+        notifyCategoriesChanged();
+        return updated;
+      }
+    }
+
+    const newCategory: PropertyCategory = {
+      id: 'cat-' + Date.now(),
+      name: cat.name.trim(),
+      slug,
+      description: cat.description,
+      order: categories.length + 1,
+    };
+    categories.push(newCategory);
+    localStorage.setItem(STORAGE_CATEGORIES_KEY, JSON.stringify(categories));
+    notifyCategoriesChanged();
+    return newCategory;
+  },
+
+  deleteCategory(id: string): boolean {
+    const categories = this.getCategories();
+    const filtered = categories.filter(c => c.id !== id);
+    localStorage.setItem(STORAGE_CATEGORIES_KEY, JSON.stringify(filtered));
+    notifyCategoriesChanged();
+    return true;
+  },
+
+  resetToDefaults(): PropertyCategory[] {
+    localStorage.setItem(STORAGE_CATEGORIES_KEY, JSON.stringify(INITIAL_CATEGORIES));
+    notifyCategoriesChanged();
+    return INITIAL_CATEGORIES;
+  }
+};
+
+/**
+ * Matches a property's type against a selected category filter slug,
+ * supporting legacy English keys and normalized slugs.
+ */
+export const matchesPropertyCategory = (propertyType: string, categoryFilter: string): boolean => {
+  if (!categoryFilter || categoryFilter === 'all') return true;
+
+  const propNorm = (propertyType || '').toLowerCase().trim();
+  const filterNorm = categoryFilter.toLowerCase().trim();
+
+  if (propNorm === filterNorm) return true;
+
+  // Legacy mappings for backwards compatibility
+  const legacyAliases: Record<string, string[]> = {
+    casas: ['casas', 'house', 'casa'],
+    departamentos: ['departamentos', 'apartment', 'depto', 'departamento'],
+    lotes: ['lotes', 'land', 'lote', 'terreno', 'terrenos'],
+    cocheras: ['cocheras', 'cochera', 'garage'],
+    quintas: ['quintas', 'quinta', 'field', 'casa quinta', 'campo'],
+  };
+
+  const allowed = legacyAliases[filterNorm];
+  if (allowed && allowed.includes(propNorm)) {
+    return true;
+  }
+
+  // Reverse check: if filter is legacy english and prop is spanish
+  for (const [canonical, aliases] of Object.entries(legacyAliases)) {
+    if (canonical === filterNorm || aliases.includes(filterNorm)) {
+      if (aliases.includes(propNorm) || canonical === propNorm) return true;
+    }
+  }
+
+  return false;
+};
+
+/**
+ * Returns a human-friendly display label for any property type.
+ */
+export const getPropertyTypeLabel = (type: string, categories: PropertyCategory[] = []): string => {
+  if (!type) return 'Inmueble';
+
+  const cat = categories.find(
+    c => c.slug.toLowerCase() === type.toLowerCase() || c.name.toLowerCase() === type.toLowerCase()
+  );
+  if (cat) return cat.name;
+
+  const legacyLabels: Record<string, string> = {
+    casas: 'Casa',
+    house: 'Casa',
+    departamentos: 'Departamento',
+    apartment: 'Departamento',
+    lotes: 'Lote / Terreno',
+    land: 'Lote / Terreno',
+    cocheras: 'Cochera',
+    quintas: 'Quinta',
+    field: 'Campo / Quinta',
+    commercial: 'Local Comercial',
+    duplex: 'Duplex',
+    office: 'Oficina',
+    other: 'Inmueble',
+  };
+
+  return legacyLabels[type.toLowerCase()] || type;
 };

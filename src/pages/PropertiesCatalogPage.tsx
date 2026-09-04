@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
-import { Property, OperationType, PropertyType } from '../types/property';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Property, OperationType, PropertyType, PropertyCategory } from '../types/property';
 import { PropertyCard } from '../components/public/PropertyCard';
 import { Filter, Search, SlidersHorizontal, ArrowUpDown, X } from 'lucide-react';
+import { categoryService, matchesPropertyCategory } from '../lib/supabase';
 
 interface PropertiesCatalogPageProps {
   properties: Property[];
@@ -23,6 +24,22 @@ export const PropertiesCatalogPage: React.FC<PropertiesCatalogPageProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>(initialFilters?.location || '');
   const [bedrooms, setBedrooms] = useState<number | 'all'>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'price_asc' | 'price_desc'>('newest');
+  const [categories, setCategories] = useState<PropertyCategory[]>(() => categoryService.getCategories());
+
+  useEffect(() => {
+    const updateCats = () => setCategories(categoryService.getCategories());
+    window.addEventListener('adelina-categories-changed', updateCats);
+    return () => window.removeEventListener('adelina-categories-changed', updateCats);
+  }, []);
+
+  // Sync state if initialFilters changes externally (e.g. user clicks category in navbar)
+  useEffect(() => {
+    if (initialFilters) {
+      setOperation(initialFilters.operation || 'all');
+      setPropertyType(initialFilters.type || 'all');
+      setSearchQuery(initialFilters.location || '');
+    }
+  }, [initialFilters]);
 
   // Filter logic
   const filteredProperties = useMemo(() => {
@@ -34,8 +51,8 @@ export const PropertiesCatalogPage: React.FC<PropertiesCatalogPageProps> = ({
         // Operation filter
         if (operation !== 'all' && p.operation_type !== operation) return false;
 
-        // Type filter
-        if (propertyType !== 'all' && p.property_type !== propertyType) return false;
+        // Type / Category filter with intelligent matching
+        if (propertyType !== 'all' && !matchesPropertyCategory(p.property_type, propertyType)) return false;
 
         // Bedrooms filter
         if (bedrooms !== 'all' && p.bedrooms < Number(bedrooms)) return false;
@@ -126,12 +143,12 @@ export const PropertiesCatalogPage: React.FC<PropertiesCatalogPageProps> = ({
               onChange={(e) => setPropertyType(e.target.value as PropertyType | 'all')}
               className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-zinc-800 focus:outline-none focus:border-adelina-accent transition-colors cursor-pointer"
             >
-              <option value="all">Todos los tipos</option>
-              <option value="house">Casas</option>
-              <option value="apartment">Departamentos</option>
-              <option value="land">Terrenos / Lotes</option>
-              <option value="commercial">Locales Comerciales</option>
-              <option value="field">Campos / Quintas</option>
+              <option value="all">Todas las categorías</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.slug}>
+                  {cat.name}
+                </option>
+              ))}
             </select>
           </div>
 

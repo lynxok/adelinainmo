@@ -1,6 +1,15 @@
 export type OperationType = 'sale' | 'rent' | 'temporary_rent';
-export type PropertyType = 'house' | 'apartment' | 'land' | 'commercial' | 'field' | 'duplex' | 'office' | 'other';
+export type KnownPropertyType = 'house' | 'apartment' | 'land' | 'commercial' | 'field' | 'duplex' | 'office' | 'other' | 'casas' | 'departamentos' | 'lotes' | 'cocheras' | 'quintas';
+export type PropertyType = KnownPropertyType | (string & {});
 export type PropertyStatus = 'available' | 'reserved' | 'sold' | 'rented' | 'hidden';
+
+export interface PropertyCategory {
+  id: string;
+  name: string; // ej. "Casas", "Departamentos", "Lotes", "Cocheras", "Quintas"
+  slug: string; // ej. "casas", "departamentos", "lotes", "cocheras", "quintas"
+  description?: string;
+  order?: number;
+}
 
 export interface Property {
   id: string;

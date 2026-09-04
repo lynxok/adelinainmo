@@ -4,6 +4,7 @@ import {
   Building2,
   PlusCircle,
   MessageSquare,
+  Tags,
   Rss,
   LogOut,
   ExternalLink,
@@ -30,6 +31,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'properties', label: 'Inmuebles', icon: Building2 },
     { id: 'property-new', label: 'Nueva Propiedad', icon: PlusCircle },
+    { id: 'categories', label: 'Categorías', icon: Tags },
     { id: 'leads', label: 'Consultas & Leads', icon: MessageSquare },
     { id: 'xml-feed', label: 'Feeds Portales (XML)', icon: Rss },
   ];

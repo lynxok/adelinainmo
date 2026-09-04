@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Property, OperationType, PropertyType, PropertyStatus } from '../../types/property';
+import { Property, OperationType, PropertyType, PropertyStatus, PropertyCategory } from '../../types/property';
 import {
   Save,
   ArrowLeft,
@@ -12,8 +12,9 @@ import {
   Building2,
   MapPin,
   Sparkles,
+  Tags,
 } from 'lucide-react';
-import { propertyService } from '../../lib/supabase';
+import { propertyService, categoryService } from '../../lib/supabase';
 import { compressImageToWebP } from '../../lib/imageCompressor';
 
 interface AdminPropertyEditPageProps {
@@ -53,7 +54,26 @@ export const AdminPropertyEditPage: React.FC<AdminPropertyEditPageProps> = ({
   const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
   const [operationType, setOperationType] = useState<OperationType>('sale');
-  const [propertyType, setPropertyType] = useState<PropertyType>('house');
+  const [categories, setCategories] = useState<PropertyCategory[]>(() => categoryService.getCategories());
+  const [propertyType, setPropertyType] = useState<PropertyType>(() => categories[0]?.slug || 'casas');
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [quickCatName, setQuickCatName] = useState('');
+
+  useEffect(() => {
+    const update = () => setCategories(categoryService.getCategories());
+    window.addEventListener('adelina-categories-changed', update);
+    return () => window.removeEventListener('adelina-categories-changed', update);
+  }, []);
+
+  const handleQuickAddCategory = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickCatName.trim()) return;
+    const created = categoryService.saveCategory({ name: quickCatName.trim() });
+    setPropertyType(created.slug);
+    setQuickCatName('');
+    setQuickAddOpen(false);
+  };
+
   const [currency, setCurrency] = useState<'USD' | 'ARS'>('USD');
   const [priceUsd, setPriceUsd] = useState<string>('');
   const [priceArs, setPriceArs] = useState<string>('');
@@ -360,20 +380,55 @@ export const AdminPropertyEditPage: React.FC<AdminPropertyEditPageProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-zinc-700 mb-1">Tipo de Inmueble *</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-medium text-zinc-700">Tipo de Inmueble *</label>
+                <button
+                  type="button"
+                  onClick={() => setQuickAddOpen(!quickAddOpen)}
+                  className="text-[11px] text-adelina-accent hover:underline font-medium inline-flex items-center gap-1"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>Nueva Categoría</span>
+                </button>
+              </div>
+
+              {quickAddOpen && (
+                <div className="mb-2 p-2.5 bg-adelina-accent/10 border border-adelina-accent/30 rounded-xl flex items-center gap-2 animate-fadeIn">
+                  <input
+                    type="text"
+                    placeholder="Nombre ej. Cocheras, Galpones..."
+                    value={quickCatName}
+                    onChange={(e) => setQuickCatName(e.target.value)}
+                    className="flex-1 bg-white border border-zinc-200 rounded-lg px-2.5 py-1.5 text-xs text-zinc-900 focus:outline-none focus:border-adelina-accent"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={handleQuickAddCategory}
+                    className="bg-adelina-accent text-adelina-dark font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm hover:bg-adelina-gold whitespace-nowrap"
+                  >
+                    Crear
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQuickAddOpen(false)}
+                    className="text-zinc-400 hover:text-zinc-700 p-1"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
               <select
                 value={propertyType}
                 onChange={(e) => setPropertyType(e.target.value as PropertyType)}
                 className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-zinc-900 focus:outline-none focus:border-adelina-accent cursor-pointer"
               >
-                <option value="house">Casa</option>
-                <option value="apartment">Departamento</option>
-                <option value="land">Terreno / Lote</option>
-                <option value="commercial">Local Comercial</option>
-                <option value="field">Campo / Quinta</option>
-                <option value="duplex">Duplex</option>
-                <option value="office">Oficina</option>
-                <option value="other">Otro</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.slug}>
+                    {cat.name}
+                  </option>
+                ))}
               </select>
             </div>
 

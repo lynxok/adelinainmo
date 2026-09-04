@@ -19,7 +19,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { ADELINA_PHONE_FORMATTED, getWhatsAppInquiryUrl, generateColleagueWhatsAppText } from '../lib/whatsappUtils';
-import { leadService } from '../lib/supabase';
+import { leadService, getPropertyTypeLabel } from '../lib/supabase';
 
 interface PropertyDetailPageProps {
   property: Property;
@@ -137,7 +137,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                   {operationLabel}
                 </span>
                 <span className="bg-white/95 backdrop-blur-md text-zinc-900 text-xs font-medium px-3 py-1 rounded-full">
-                  {typeLabels[property.property_type] || property.property_type}
+                  {getPropertyTypeLabel(property.property_type)}
                 </span>
               </div>
             </div>
@@ -188,7 +188,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
 
             {/* Technical Specs Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-2">
-              {property.property_type !== 'land' ? (
+              {!['land', 'lotes', 'cocheras'].includes(property.property_type.toLowerCase()) ? (
                 <>
                   <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-100 text-center space-y-1">
                     <Bed className="w-5 h-5 text-adelina-accent mx-auto" />

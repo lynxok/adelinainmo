@@ -2,6 +2,7 @@ import React from 'react';
 import { Property } from '../../types/property';
 import { Bed, Bath, Maximize2, MapPin, MessageCircle, ArrowRight, ShieldCheck } from 'lucide-react';
 import { getWhatsAppInquiryUrl } from '../../lib/whatsappUtils';
+import { getPropertyTypeLabel } from '../../lib/supabase';
 
 interface PropertyCardProps {
   property: Property;
@@ -24,17 +25,6 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     ? 'Alquiler'
     : 'Alquiler Temporario';
 
-  const typeLabels: Record<string, string> = {
-    house: 'Casa',
-    apartment: 'Departamento',
-    land: 'Terreno / Lote',
-    commercial: 'Local Comercial',
-    field: 'Campo / Quinta',
-    duplex: 'Duplex',
-    office: 'Oficina',
-    other: 'Inmueble',
-  };
-
   const mainImage = property.featured_image || property.images[0] || '/assets/chic-living.jpg';
 
   return (
@@ -55,7 +45,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             {operationLabel}
           </span>
           <span className="bg-white/90 backdrop-blur-md text-zinc-800 text-[11px] font-medium px-2.5 py-1 rounded-full">
-            {typeLabels[property.property_type] || property.property_type}
+            {getPropertyTypeLabel(property.property_type)}
           </span>
         </div>
 

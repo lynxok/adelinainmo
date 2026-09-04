@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Home, Building2, MapPin, Tag } from 'lucide-react';
-import { OperationType, PropertyType } from '../../types/property';
+import { OperationType, PropertyType, PropertyCategory } from '../../types/property';
+import { categoryService } from '../../lib/supabase';
 
 interface SearchFilterBarProps {
   onSearch: (filters: {
@@ -15,6 +16,13 @@ export const SearchFilterBar: React.FC<SearchFilterBarProps> = ({ onSearch, comp
   const [operation, setOperation] = useState<OperationType | 'all'>('sale');
   const [type, setType] = useState<PropertyType | 'all'>('all');
   const [location, setLocation] = useState<string>('');
+  const [categories, setCategories] = useState<PropertyCategory[]>(() => categoryService.getCategories());
+
+  useEffect(() => {
+    const update = () => setCategories(categoryService.getCategories());
+    window.addEventListener('adelina-categories-changed', update);
+    return () => window.removeEventListener('adelina-categories-changed', update);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,11 +81,11 @@ export const SearchFilterBar: React.FC<SearchFilterBarProps> = ({ onSearch, comp
               className="w-full bg-transparent text-xs sm:text-sm font-medium text-zinc-800 focus:outline-none cursor-pointer"
             >
               <option value="all">Todos los tipos</option>
-              <option value="house">Casas</option>
-              <option value="apartment">Departamentos</option>
-              <option value="land">Terrenos / Lotes</option>
-              <option value="commercial">Locales Comerciales</option>
-              <option value="field">Campos / Quintas</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.slug}>
+                  {cat.name}
+                </option>
+              ))}
             </select>
           </div>
         </div>

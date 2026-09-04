@@ -14,6 +14,7 @@ import { AdminLayout } from './components/admin/AdminLayout';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { AdminPropertiesPage } from './pages/admin/AdminPropertiesPage';
 import { AdminPropertyEditPage } from './pages/admin/AdminPropertyEditPage';
+import { AdminCategoriesPage } from './pages/admin/AdminCategoriesPage';
 import { AdminLeadsPage } from './pages/admin/AdminLeadsPage';
 import { XmlFeedPage } from './pages/admin/XmlFeedPage';
 
@@ -26,7 +27,7 @@ export function App() {
 
   // Admin states
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(false);
-  const [adminTab, setAdminTab] = useState<'dashboard' | 'properties' | 'property-new' | 'property-edit' | 'leads' | 'xml-feed'>('dashboard');
+  const [adminTab, setAdminTab] = useState<'dashboard' | 'properties' | 'property-new' | 'property-edit' | 'categories' | 'leads' | 'xml-feed'>('dashboard');
   const [editingPropertyId, setEditingPropertyId] = useState<string | undefined>(undefined);
 
   // Load initial properties & leads
@@ -67,7 +68,10 @@ export function App() {
       setCurrentView('home');
       setSelectedPropertySlug('');
     } else if (view === 'catalog') {
-      if (param === 'operation:sale') {
+      if (param?.startsWith('category:')) {
+        const catSlug = param.replace('category:', '');
+        setCatalogFilters({ type: catSlug });
+      } else if (param === 'operation:sale') {
         setCatalogFilters({ operation: 'sale' });
       } else if (param === 'operation:rent') {
         setCatalogFilters({ operation: 'rent' });
@@ -181,6 +185,9 @@ export function App() {
               setAdminTab('properties');
             }}
           />
+        )}
+        {adminTab === 'categories' && (
+          <AdminCategoriesPage />
         )}
         {adminTab === 'leads' && (
           <AdminLeadsPage
