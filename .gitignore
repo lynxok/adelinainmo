@@ -1,5 +1,7 @@
 node_modules
 *.zip
+*.fig
+Web Adelina.fig/Figma 2/
 .DS_Store
 .env
 .env.local

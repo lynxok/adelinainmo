@@ -1,7 +1,11 @@
 import React from 'react';
 import { getWhatsAppGeneralUrl } from '../../lib/whatsappUtils';
 
-export const AboutSection: React.FC = () => {
+interface AboutSectionProps {
+  onNavigate?: (view: string, param?: string) => void;
+}
+
+export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
   return (
     <section id="sobre-adelina" className="bg-[#F5F5F5] py-20 sm:py-28 px-4 sm:px-6 lg:px-12 border-b border-zinc-200/50">
       <div className="max-w-6xl mx-auto">
@@ -38,14 +42,13 @@ export const AboutSection: React.FC = () => {
 
             {/* Designer Outline Pill Button from Figma */}
             <div className="pt-2">
-              <a
-                href={getWhatsAppGeneralUrl('Hola Adelina, quiero conocer más sobre tu asesoramiento inmobiliario')}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block border border-zinc-300 hover:border-zinc-800 bg-transparent hover:bg-white text-zinc-500 hover:text-zinc-900 font-archivo text-[11px] font-medium tracking-[0.18em] uppercase px-8 py-3.5 rounded-full transition-all duration-200"
+              <button
+                type="button"
+                onClick={() => onNavigate ? onNavigate('about') : undefined}
+                className="inline-block border border-zinc-300 hover:border-zinc-800 bg-transparent hover:bg-white text-zinc-500 hover:text-zinc-900 font-archivo text-[11px] font-medium tracking-[0.18em] uppercase px-8 py-3.5 rounded-full transition-all duration-200 cursor-pointer"
               >
                 CONOCER MÁS SOBRE MÍ
-              </a>
+              </button>
             </div>
           </div>
         </div>

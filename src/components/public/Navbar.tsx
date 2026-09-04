@@ -65,13 +65,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView }) => {
             Vender / Tasaciones
           </button>
           <button
-            onClick={() => {
-              if (currentView !== 'home') onNavigate('home');
-              setTimeout(() => {
-                document.getElementById('sobre-adelina')?.scrollIntoView({ behavior: 'smooth' });
-              }, 100);
-            }}
-            className="hover:text-adelina-accent transition-colors text-zinc-200"
+            onClick={() => onNavigate('about')}
+            className={`hover:text-adelina-accent transition-colors ${currentView === 'about' ? 'text-adelina-accent font-medium' : 'text-zinc-200'}`}
           >
             Sobre Adelina
           </button>
@@ -146,11 +141,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView }) => {
           </button>
           <button
             onClick={() => { 
-              onNavigate('home'); 
+              onNavigate('about'); 
               setMobileMenuOpen(false);
-              setTimeout(() => document.getElementById('sobre-adelina')?.scrollIntoView({ behavior: 'smooth' }), 150);
             }}
-            className="block w-full text-left py-2 text-lg border-b border-zinc-800"
+            className={`block w-full text-left py-2 text-lg border-b border-zinc-800 ${currentView === 'about' ? 'text-adelina-accent font-medium' : 'text-zinc-200'}`}
           >
             Sobre Adelina
           </button>

@@ -8,6 +8,7 @@ import { PropertiesCatalogPage } from './pages/PropertiesCatalogPage';
 import { PropertyDetailPage } from './pages/PropertyDetailPage';
 import { PropertyColleaguePage } from './pages/PropertyColleaguePage';
 import { ValuationPage } from './pages/ValuationPage';
+import { AboutAdelinaPage } from './pages/AboutAdelinaPage';
 import { AdminLoginPage } from './pages/admin/AdminLoginPage';
 import { AdminLayout } from './components/admin/AdminLayout';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
@@ -19,7 +20,7 @@ import { XmlFeedPage } from './pages/admin/XmlFeedPage';
 export function App() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [currentView, setCurrentView] = useState<'home' | 'catalog' | 'detail' | 'colleague' | 'valuation' | 'admin'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'catalog' | 'detail' | 'colleague' | 'valuation' | 'admin' | 'about'>('home');
   const [selectedPropertySlug, setSelectedPropertySlug] = useState<string>('');
   const [catalogFilters, setCatalogFilters] = useState<PropertyFilter | undefined>(undefined);
 
@@ -76,6 +77,8 @@ export function App() {
       setCurrentView('catalog');
     } else if (view === 'valuation') {
       setCurrentView('valuation');
+    } else if (view === 'about') {
+      setCurrentView('about');
     } else if (view === 'admin') {
       setCurrentView('admin');
     }
@@ -225,6 +228,10 @@ export function App() {
 
         {currentView === 'valuation' && (
           <ValuationPage />
+        )}
+
+        {currentView === 'about' && (
+          <AboutAdelinaPage onNavigate={handleNavigate} />
         )}
       </main>
 

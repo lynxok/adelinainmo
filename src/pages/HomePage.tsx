@@ -32,7 +32,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       <BrandManifestoSection />
 
       {/* 3. Sobre Mí (Foto Adelina + UNA FORMA MÁS CERCANA DE VIVIR EL PROCESO INMOBILIARIO) */}
-      <AboutSection />
+      <AboutSection onNavigate={onNavigate} />
 
       {/* 4. Servicios (¿EN QUÉ PUEDO ACOMPAÑARTE? + Foto Living + 3 Columnas) */}
       <ServicesGrid onNavigate={onNavigate} />
