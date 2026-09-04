@@ -17,6 +17,7 @@ import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { AdminPropertiesPage } from './pages/admin/AdminPropertiesPage';
 import { AdminPropertyEditPage } from './pages/admin/AdminPropertyEditPage';
 import { AdminCategoriesPage } from './pages/admin/AdminCategoriesPage';
+import { AdminTestimonialsPage } from './pages/admin/AdminTestimonialsPage';
 import { AdminLeadsPage } from './pages/admin/AdminLeadsPage';
 import { XmlFeedPage } from './pages/admin/XmlFeedPage';
 
@@ -29,7 +30,7 @@ export function App() {
 
   // Admin states
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(false);
-  const [adminTab, setAdminTab] = useState<'dashboard' | 'properties' | 'property-new' | 'property-edit' | 'categories' | 'leads' | 'xml-feed'>('dashboard');
+  const [adminTab, setAdminTab] = useState<'dashboard' | 'properties' | 'property-new' | 'property-edit' | 'categories' | 'testimonials' | 'leads' | 'xml-feed'>('dashboard');
   const [editingPropertyId, setEditingPropertyId] = useState<string | undefined>(undefined);
 
   // Load initial properties & leads
@@ -190,6 +191,9 @@ export function App() {
         )}
         {adminTab === 'categories' && (
           <AdminCategoriesPage />
+        )}
+        {adminTab === 'testimonials' && (
+          <AdminTestimonialsPage />
         )}
         {adminTab === 'leads' && (
           <AdminLeadsPage

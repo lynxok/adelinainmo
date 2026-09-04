@@ -181,9 +181,6 @@ export const BuyAndSellPage: React.FC<BuyAndSellPageProps> = ({
 
         {/* Hero Title & Subtitle */}
         <div className="relative z-10 max-w-7xl mx-auto w-full space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] uppercase tracking-widest text-zinc-200">
-            <span>Adelina Luján • Asesoramiento Inmobiliario</span>
-          </div>
           <h1 className="font-archivo text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light text-white tracking-tight leading-[1.08]">
             Propiedades
           </h1>

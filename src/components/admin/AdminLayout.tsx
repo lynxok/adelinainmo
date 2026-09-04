@@ -9,6 +9,7 @@ import {
   LogOut,
   ExternalLink,
   ShieldCheck,
+  Quote,
 } from 'lucide-react';
 import { AdelinaLogo } from '../public/AdelinaLogo';
 
@@ -32,6 +33,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     { id: 'properties', label: 'Inmuebles', icon: Building2 },
     { id: 'property-new', label: 'Nueva Propiedad', icon: PlusCircle },
     { id: 'categories', label: 'Categorías', icon: Tags },
+    { id: 'testimonials', label: 'Testimonios', icon: Quote },
     { id: 'leads', label: 'Consultas & Leads', icon: MessageSquare },
     { id: 'xml-feed', label: 'Feeds Portales (XML)', icon: Rss },
   ];

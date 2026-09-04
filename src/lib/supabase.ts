@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { Property, Lead, PropertyCategory } from '../types/property';
+import { Testimonial } from '../types/testimonial';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://mock-supabase-adelina.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'mock-anon-key';
@@ -465,3 +466,155 @@ export const getPropertyTypeLabel = (type: string, categories: PropertyCategory[
 
   return legacyLabels[type.toLowerCase()] || type;
 };
+
+// ==========================================
+// TESTIMONIALS SERVICE & PERSISTENCE
+// ==========================================
+const STORAGE_TESTIMONIALS_KEY = 'adelina_testimonials_data';
+
+const INITIAL_TESTIMONIALS: Testimonial[] = [
+  {
+    id: 'test-1',
+    client_name: 'Ero Wals',
+    client_role: 'Operational Leads',
+    quote: '“Since using this platform, our team’s productivity has increased significantly. Processes that were previously manual can now be automated”',
+    rating: 5,
+    date: '12/05/2026',
+    is_active: true,
+    order_index: 1,
+    created_at: new Date('2026-05-12').toISOString(),
+  },
+  {
+    id: 'test-2',
+    client_name: 'María Eugenia R.',
+    client_role: 'Compradora Depto. Centro',
+    quote: '“Excelente acompañamiento y transparencia en cada paso de la compra. Encontraron exactamente lo que buscábamos para nuestra familia con total profesionalismo.”',
+    rating: 5,
+    date: '04/06/2026',
+    is_active: true,
+    order_index: 2,
+    created_at: new Date('2026-06-04').toISOString(),
+  },
+  {
+    id: 'test-3',
+    client_name: 'Martín Sbarbaro',
+    client_role: 'Inversor Residencial',
+    quote: '“El asesoramiento inmobiliario fue impecable. La tasación y el análisis del mercado nos permitieron tomar la mejor decisión de inversión con rentabilidad asegurada.”',
+    rating: 5,
+    date: '18/07/2026',
+    is_active: true,
+    order_index: 3,
+    created_at: new Date('2026-07-18').toISOString(),
+  },
+  {
+    id: 'test-4',
+    client_name: 'Lucía Fernández',
+    client_role: 'Propietaria - Venta Casa Quinta',
+    quote: '“Vendimos nuestra propiedad en tiempo récord y sin contratiempos. La calidad de las fotos y la difusión fue superadora. Muy agradecida con todo el equipo de Adelina.”',
+    rating: 5,
+    date: '22/08/2026',
+    is_active: true,
+    order_index: 4,
+    created_at: new Date('2026-08-22').toISOString(),
+  },
+];
+
+const notifyTestimonialsChanged = () => {
+  window.dispatchEvent(new CustomEvent('adelina-testimonials-changed'));
+};
+
+export const testimonialService = {
+  getTestimonials(): Testimonial[] {
+    const raw = localStorage.getItem(STORAGE_TESTIMONIALS_KEY);
+    if (!raw) {
+      localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(INITIAL_TESTIMONIALS));
+      return INITIAL_TESTIMONIALS;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+      localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(INITIAL_TESTIMONIALS));
+      return INITIAL_TESTIMONIALS;
+    } catch (e) {
+      console.error('Error parsing testimonials:', e);
+      return INITIAL_TESTIMONIALS;
+    }
+  },
+
+  getActiveTestimonials(): Testimonial[] {
+    const all = this.getTestimonials();
+    return all.filter(t => t.is_active !== false);
+  },
+
+  saveTestimonial(testData: Partial<Testimonial> & { client_name: string; quote: string }): Testimonial {
+    const testimonials = this.getTestimonials();
+    const nowIso = new Date().toISOString();
+
+    if (testData.id) {
+      const index = testimonials.findIndex(t => t.id === testData.id);
+      if (index >= 0) {
+        const updated: Testimonial = {
+          ...testimonials[index],
+          client_name: testData.client_name.trim(),
+          client_role: (testData.client_role || 'Cliente').trim(),
+          quote: testData.quote.trim(),
+          rating: typeof testData.rating === 'number' ? Math.min(5, Math.max(1, testData.rating)) : 5,
+          date: testData.date || testimonials[index].date || new Date().toLocaleDateString('es-AR'),
+          avatar_url: testData.avatar_url || '',
+          is_active: testData.is_active !== undefined ? testData.is_active : testimonials[index].is_active,
+          order_index: testData.order_index ?? testimonials[index].order_index ?? (index + 1),
+        };
+        testimonials[index] = updated;
+        localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(testimonials));
+        notifyTestimonialsChanged();
+        return updated;
+      }
+    }
+
+    const newTestimonial: Testimonial = {
+      id: 'test-' + Date.now(),
+      client_name: testData.client_name.trim(),
+      client_role: (testData.client_role || 'Cliente').trim(),
+      quote: testData.quote.trim(),
+      rating: typeof testData.rating === 'number' ? Math.min(5, Math.max(1, testData.rating)) : 5,
+      date: testData.date || new Date().toLocaleDateString('es-AR'),
+      avatar_url: testData.avatar_url || '',
+      is_active: testData.is_active !== undefined ? testData.is_active : true,
+      order_index: testimonials.length + 1,
+      created_at: nowIso,
+    };
+    testimonials.unshift(newTestimonial);
+    localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(testimonials));
+    notifyTestimonialsChanged();
+    return newTestimonial;
+  },
+
+  toggleActive(id: string): boolean {
+    const testimonials = this.getTestimonials();
+    const index = testimonials.findIndex(t => t.id === id);
+    if (index >= 0) {
+      testimonials[index].is_active = !testimonials[index].is_active;
+      localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(testimonials));
+      notifyTestimonialsChanged();
+      return testimonials[index].is_active;
+    }
+    return false;
+  },
+
+  deleteTestimonial(id: string): boolean {
+    const testimonials = this.getTestimonials();
+    const filtered = testimonials.filter(t => t.id !== id);
+    localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(filtered));
+    notifyTestimonialsChanged();
+    return true;
+  },
+
+  resetToDefaults(): Testimonial[] {
+    localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(INITIAL_TESTIMONIALS));
+    notifyTestimonialsChanged();
+    return INITIAL_TESTIMONIALS;
+  }
+};
+

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Property, Lead } from '../../types/property';
-import { Building2, Sparkles, MessageCircle, TrendingUp, Plus, ArrowRight, ExternalLink, Share2, Rss } from 'lucide-react';
+import { Building2, Sparkles, MessageCircle, TrendingUp, Plus, ArrowRight, ExternalLink, Share2, Rss, Quote, Star } from 'lucide-react';
+import { testimonialService } from '../../lib/supabase';
 
 interface AdminDashboardPageProps {
   properties: Property[];
@@ -18,6 +19,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const activeCount = properties.filter(p => p.status === 'available').length;
   const featuredCount = properties.filter(p => p.is_featured).length;
   const newLeadsCount = leads.filter(l => l.status === 'new').length;
+  const activeTestimonialsCount = testimonialService.getActiveTestimonials().length;
 
   return (
     <div className="space-y-8">
@@ -56,7 +58,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       </div>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
         <div
           onClick={() => onNavigateTab('properties')}
           className="bg-white p-6 rounded-3xl border border-zinc-200 shadow-sm hover:shadow-md transition-all cursor-pointer space-y-2 group"
@@ -68,7 +70,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             </div>
           </div>
           <div className="font-archivo text-3xl font-bold text-zinc-900">{activeCount}</div>
-          <span className="text-[11px] text-zinc-500 font-light block">Listas para la venta o alquiler</span>
+          <span className="text-[11px] text-zinc-500 font-light block">Listas para venta/alquiler</span>
         </div>
 
         <div
@@ -76,13 +78,27 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
           className="bg-white p-6 rounded-3xl border border-zinc-200 shadow-sm hover:shadow-md transition-all cursor-pointer space-y-2 group"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Destacadas en Home</span>
+            <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Destacadas Home</span>
             <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
               <Sparkles className="w-5 h-5" />
             </div>
           </div>
           <div className="font-archivo text-3xl font-bold text-zinc-900">{featuredCount}</div>
           <span className="text-[11px] text-zinc-500 font-light block">Visibles en portada</span>
+        </div>
+
+        <div
+          onClick={() => onNavigateTab('testimonials')}
+          className="bg-white p-6 rounded-3xl border border-zinc-200 shadow-sm hover:shadow-md transition-all cursor-pointer space-y-2 group"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Testimonios</span>
+            <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Quote className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="font-archivo text-3xl font-bold text-zinc-900">{activeTestimonialsCount}</div>
+          <span className="text-[11px] text-zinc-500 font-light block">Reseñas activas en web</span>
         </div>
 
         <div
@@ -110,7 +126,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             </div>
           </div>
           <div className="font-archivo text-xl font-bold text-zinc-900">Zonaprop / ML</div>
-          <span className="text-[11px] text-zinc-500 font-light block">Feed XML automático activo</span>
+          <span className="text-[11px] text-zinc-500 font-light block">XML automático activo</span>
         </div>
       </div>
 
