@@ -3,6 +3,7 @@ import { Property, Lead, PropertyFilter } from './types/property';
 import { propertyService, leadService } from './lib/supabase';
 import { Navbar } from './components/public/Navbar';
 import { Footer } from './components/public/Footer';
+import { FloatingWhatsAppButton } from './components/public/FloatingWhatsAppButton';
 import { HomePage } from './pages/HomePage';
 import { PropertiesCatalogPage } from './pages/PropertiesCatalogPage';
 import { BuyAndSellPage } from './pages/BuyAndSellPage';
@@ -245,6 +246,12 @@ export function App() {
       </main>
 
       <Footer onNavigate={handleNavigate} />
+
+      {/* Botón flotante de WhatsApp oficial (Figma 1:1) */}
+      <FloatingWhatsAppButton
+        currentView={currentView}
+        activeProperty={activeProperty}
+      />
     </div>
   );
 }

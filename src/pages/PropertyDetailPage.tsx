@@ -585,17 +585,6 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
 
       </div>
 
-      {/* 6. FLOATING WHATSAPP BUTTON (Figma style) */}
-      <a
-        href={getWhatsAppInquiryUrl(property)}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-40 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#25D366] hover:bg-[#20ba59] text-white flex items-center justify-center shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95"
-        title="Consultar por WhatsApp"
-      >
-        <MessageCircle className="w-7 h-7 sm:w-8 sm:h-8 fill-current" />
-      </a>
-
       {/* 7. MODAL: LIGHTBOX FULLSCREEN IMAGES */}
       {isLightboxOpen && (
         <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 sm:p-8 animate-fadeIn">
