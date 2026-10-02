@@ -1,32 +1,39 @@
 import React, { useState } from 'react';
-import { Lock, Mail, ShieldCheck, ArrowRight, Sparkles } from 'lucide-react';
-
+import { Lock, Mail, ArrowRight, Loader2, KeyRound } from 'lucide-react';
 import { AdelinaLogo } from '../../components/public/AdelinaLogo';
+import { authService } from '../../lib/supabase';
+import { UserProfile } from '../../types/property';
 
 interface AdminLoginPageProps {
-  onLoginSuccess: () => void;
+  onLoginSuccess: (profile?: UserProfile) => void;
   onBackToWeb: () => void;
 }
 
 export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackToWeb }) => {
-  const [email, setEmail] = useState('adelina@inmobiliaria.com');
-  const [password, setPassword] = useState('••••••••');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Default master access for local/in-house management
-    if (email && password) {
-      localStorage.setItem('adelina_admin_auth', 'true');
-      onLoginSuccess();
-    } else {
-      setError('Por favor completá usuario y contraseña');
+    if (!email || !password) {
+      setError('Por favor completá usuario y contraseña.');
+      return;
     }
-  };
 
-  const handleQuickDemoAccess = () => {
-    localStorage.setItem('adelina_admin_auth', 'true');
-    onLoginSuccess();
+    setError('');
+    setLoading(true);
+
+    try {
+      const { profile } = await authService.login(email, password);
+      onLoginSuccess(profile || undefined);
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError('Credenciales incorrectas. Verificá tu correo y contraseña.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -41,7 +48,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, 
             Panel Inmobiliario
           </h1>
           <p className="text-xs text-zinc-500 font-light">
-            Gestión de propiedades, fichas para colegas y consultas
+            Ingreso exclusivo para gestión de catálogo, clientes y consultas
           </p>
         </div>
 
@@ -59,6 +66,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, 
               <input
                 type="email"
                 required
+                placeholder="ejemplo@adelinainmobiliaria.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-zinc-50 border border-zinc-200 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-zinc-800 focus:outline-none focus:border-adelina-accent"
@@ -73,6 +81,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, 
               <input
                 type="password"
                 required
+                placeholder="Ingresá tu contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-zinc-50 border border-zinc-200 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-zinc-800 focus:outline-none focus:border-adelina-accent"
@@ -82,23 +91,21 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, 
 
           <button
             type="submit"
-            className="w-full bg-adelina-dark hover:bg-black text-white font-medium py-3 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
+            disabled={loading}
+            className="w-full bg-adelina-dark hover:bg-black text-white font-medium py-3 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-50"
           >
-            <span>Ingresar al Panel</span>
-            <ArrowRight className="w-4 h-4 text-adelina-accent" />
+            {loading ? (
+              <Loader2 className="w-4 h-4 animate-spin text-adelina-accent" />
+            ) : (
+              <>
+                <span>Ingresar al Panel</span>
+                <ArrowRight className="w-4 h-4 text-adelina-accent" />
+              </>
+            )}
           </button>
         </form>
 
-        <div className="pt-2 border-t border-zinc-100 space-y-3">
-          <button
-            type="button"
-            onClick={handleQuickDemoAccess}
-            className="w-full bg-adelina-sand/80 hover:bg-adelina-sand text-adelina-dark font-medium py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-colors border border-adelina-border"
-          >
-            <Sparkles className="w-4 h-4 text-adelina-gold" />
-            <span>Acceso Rápido Administrador</span>
-          </button>
-
+        <div className="pt-2 border-t border-zinc-100">
           <button
             type="button"
             onClick={onBackToWeb}

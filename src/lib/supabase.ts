@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
-import { Property, Lead, PropertyCategory } from '../types/property';
+import { Property, Lead, PropertyCategory, UserProfile, UserRole } from '../types/property';
 import { Testimonial } from '../types/testimonial';
+import { compressImageToWebP } from './imageCompressor';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://mock-supabase-adelina.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'mock-anon-key';
@@ -11,6 +12,18 @@ export const isLiveSupabase = Boolean(
 );
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+const safeExecute = async (operation: PromiseLike<any>) => {
+  try {
+    const res = await operation;
+    if (res && typeof res === 'object' && 'error' in res && res.error) {
+      console.error('Supabase query error:', res.error);
+    }
+    return res;
+  } catch (err) {
+    console.error('Supabase execution error:', err);
+  }
+};
 
 // ==========================================
 // SEED DATA DIRECTLY FROM FIGMA ASSETS
@@ -162,19 +175,122 @@ const INITIAL_PROPERTIES: Property[] = [
 
 const STORAGE_PROPERTIES_KEY = 'adelina_properties_data_v1';
 const STORAGE_LEADS_KEY = 'adelina_leads_data_v1';
+const STORAGE_CATEGORIES_KEY = 'adelina_categories_data_v1';
+const STORAGE_TESTIMONIALS_KEY = 'adelina_testimonials_data';
 
-// Service layer for Properties (syncs with local storage and Supabase)
+// Custom Event dispatchers for reactive synchronization
+export const notifyPropertiesChanged = () => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('adelina-properties-changed'));
+  }
+};
+
+export const notifyCategoriesChanged = () => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('adelina-categories-changed'));
+  }
+};
+
+export const notifyTestimonialsChanged = () => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('adelina-testimonials-changed'));
+  }
+};
+
+export const notifyLeadsChanged = () => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('adelina-leads-changed'));
+  }
+};
+
+// ==========================================
+// STORAGE SERVICE: SUPABASE STORAGE UPLOADER
+// ==========================================
+export const uploadImageToSupabase = async (
+  file: File,
+  folder = 'properties'
+): Promise<string> => {
+  try {
+    const { file: webpFile, dataUrl } = await compressImageToWebP(file);
+
+    if (!isLiveSupabase) {
+      return dataUrl;
+    }
+
+    const sanitizedName = file.name
+      .toLowerCase()
+      .replace(/\.[^/.]+$/, '')
+      .replace(/[^a-z0-9]/g, '-')
+      .replace(/-+/g, '-');
+    const path = `${folder}/${Date.now()}-${sanitizedName}.webp`;
+
+    const { data, error } = await supabase.storage
+      .from('adelina-media')
+      .upload(path, webpFile, {
+        contentType: 'image/webp',
+        cacheControl: '31536000',
+        upsert: true,
+      });
+
+    if (error) {
+      console.warn('Storage upload error, falling back to WebP dataUrl:', error);
+      return dataUrl;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from('adelina-media')
+      .getPublicUrl(data.path);
+
+    return publicUrlData.publicUrl;
+  } catch (err) {
+    console.error('Error in uploadImageToSupabase:', err);
+    const { dataUrl } = await compressImageToWebP(file);
+    return dataUrl;
+  }
+};
+
+// ==========================================
+// PROPERTIES SERVICE (Supabase + Local Cache)
+// ==========================================
 export const propertyService = {
   getProperties(): Property[] {
     const raw = localStorage.getItem(STORAGE_PROPERTIES_KEY);
     if (!raw) {
       localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(INITIAL_PROPERTIES));
+      if (isLiveSupabase) {
+        this.fetchProperties();
+      }
       return INITIAL_PROPERTIES;
     }
     try {
       return JSON.parse(raw);
     } catch {
       return INITIAL_PROPERTIES;
+    }
+  },
+
+  async fetchProperties(): Promise<Property[]> {
+    if (!isLiveSupabase) return this.getProperties();
+    try {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching properties from Supabase:', error);
+        return this.getProperties();
+      }
+
+      if (data && data.length > 0) {
+        localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(data));
+        notifyPropertiesChanged();
+        return data as Property[];
+      }
+      return this.getProperties();
+    } catch (err) {
+      console.error('Unexpected error fetching properties:', err);
+      return this.getProperties();
     }
   },
 
@@ -187,40 +303,62 @@ export const propertyService = {
     const properties = this.getProperties();
     const now = new Date().toISOString();
 
+    let targetProperty: Property;
+
     if (property.id) {
       // Update
       const index = properties.findIndex(p => p.id === property.id);
       if (index >= 0) {
-        const updated: Property = {
+        targetProperty = {
           ...properties[index],
           ...property,
           id: property.id,
           updated_at: now,
         };
-        properties[index] = updated;
-        localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(properties));
-        return updated;
+        properties[index] = targetProperty;
+      } else {
+        targetProperty = {
+          ...property,
+          id: property.id,
+          created_at: now,
+          updated_at: now,
+        } as Property;
+        properties.unshift(targetProperty);
       }
+    } else {
+      // Create New
+      const generatedSlug = property.slug || property.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Math.floor(Math.random() * 1000);
+      targetProperty = {
+        ...property,
+        id: 'prop-' + Date.now(),
+        slug: generatedSlug,
+        created_at: now,
+        updated_at: now,
+      } as Property;
+      properties.unshift(targetProperty);
     }
 
-    // Create New
-    const newProperty: Property = {
-      ...property,
-      id: 'prop-' + Date.now(),
-      slug: property.slug || property.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Math.floor(Math.random() * 1000),
-      created_at: now,
-      updated_at: now,
-    };
-
-    properties.unshift(newProperty);
     localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(properties));
-    return newProperty;
+    notifyPropertiesChanged();
+
+    // Async sync with Supabase
+    if (isLiveSupabase) {
+      safeExecute(supabase.from('properties').upsert(targetProperty));
+    }
+
+    return targetProperty;
   },
 
   deleteProperty(id: string): boolean {
     const properties = this.getProperties();
     const filtered = properties.filter(p => p.id !== id);
     localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(filtered));
+    notifyPropertiesChanged();
+
+    if (isLiveSupabase) {
+      safeExecute(supabase.from('properties').delete().eq('id', id));
+    }
+
     return true;
   },
 
@@ -231,6 +369,16 @@ export const propertyService = {
       p.is_featured = !p.is_featured;
       p.updated_at = new Date().toISOString();
       localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(properties));
+      notifyPropertiesChanged();
+
+      if (isLiveSupabase) {
+        safeExecute(
+          supabase
+            .from('properties')
+            .update({ is_featured: p.is_featured, updated_at: p.updated_at })
+            .eq('id', id)
+        );
+      }
       return true;
     }
     return false;
@@ -243,13 +391,25 @@ export const propertyService = {
       p.status = status;
       p.updated_at = new Date().toISOString();
       localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(properties));
+      notifyPropertiesChanged();
+
+      if (isLiveSupabase) {
+        safeExecute(
+          supabase
+            .from('properties')
+            .update({ status: p.status, updated_at: p.updated_at })
+            .eq('id', id)
+        );
+      }
       return true;
     }
     return false;
   }
 };
 
-// Service layer for Leads
+// ==========================================
+// LEADS SERVICE (Supabase + Local Cache)
+// ==========================================
 export const leadService = {
   getLeads(): Lead[] {
     const raw = localStorage.getItem(STORAGE_LEADS_KEY);
@@ -259,13 +419,13 @@ export const leadService = {
           id: 'lead-1',
           property_id: 'prop-1',
           property_title: 'Casa en Barrio Privado',
-          full_name: 'Martín Almada',
+          full_name: 'Mariano Gómez',
           phone: '+54 9 343 456-7890',
-          email: 'martin.almada@gmail.com',
-          message: 'Hola Adelina, me interesa conocer las expensas aproximadas del barrio y si aceptan propiedad de menor valor en parte de pago.',
+          email: 'mariano.gomez@gmail.com',
+          message: 'Hola! Estoy muy interesado en la casa en Barrio Privado. Quisiera coordinar una visita y conocer condiciones.',
           source: 'web_form',
           status: 'new',
-          created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+          created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
         },
         {
           id: 'lead-2',
@@ -281,12 +441,40 @@ export const leadService = {
         }
       ];
       localStorage.setItem(STORAGE_LEADS_KEY, JSON.stringify(initialLeads));
+      if (isLiveSupabase) {
+        this.fetchLeads();
+      }
       return initialLeads;
     }
     try {
       return JSON.parse(raw);
     } catch {
       return [];
+    }
+  },
+
+  async fetchLeads(): Promise<Lead[]> {
+    if (!isLiveSupabase) return this.getLeads();
+    try {
+      const { data, error } = await supabase
+        .from('leads')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching leads from Supabase:', error);
+        return this.getLeads();
+      }
+
+      if (data) {
+        localStorage.setItem(STORAGE_LEADS_KEY, JSON.stringify(data));
+        notifyLeadsChanged();
+        return data as Lead[];
+      }
+      return this.getLeads();
+    } catch (err) {
+      console.error('Unexpected error fetching leads:', err);
+      return this.getLeads();
     }
   },
 
@@ -300,6 +488,12 @@ export const leadService = {
     };
     leads.unshift(newLead);
     localStorage.setItem(STORAGE_LEADS_KEY, JSON.stringify(leads));
+    notifyLeadsChanged();
+
+    if (isLiveSupabase) {
+      safeExecute(supabase.from('leads').insert(newLead));
+    }
+
     return newLead;
   },
 
@@ -309,6 +503,11 @@ export const leadService = {
     if (l) {
       l.status = status;
       localStorage.setItem(STORAGE_LEADS_KEY, JSON.stringify(leads));
+      notifyLeadsChanged();
+
+      if (isLiveSupabase) {
+        safeExecute(supabase.from('leads').update({ status }).eq('id', id));
+      }
     }
   }
 };
@@ -316,8 +515,6 @@ export const leadService = {
 // ==========================================
 // CATEGORIES SERVICE & HELPERS
 // ==========================================
-const STORAGE_CATEGORIES_KEY = 'adelina_categories_data_v1';
-
 export const INITIAL_CATEGORIES: PropertyCategory[] = [
   { id: 'cat-casas', name: 'Casas', slug: 'casas', description: 'Casas y residencias en zonas urbanas y barrios cerrados', order: 1 },
   { id: 'cat-deptos', name: 'Departamentos', slug: 'departamentos', description: 'Departamentos de categoría céntricos y residenciales', order: 2 },
@@ -326,24 +523,50 @@ export const INITIAL_CATEGORIES: PropertyCategory[] = [
   { id: 'cat-quintas', name: 'Quintas', slug: 'quintas', description: 'Casas quintas de fin de semana y chacras con parque', order: 5 },
 ];
 
-export const notifyCategoriesChanged = () => {
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('adelina-categories-changed'));
-  }
-};
-
 export const categoryService = {
   getCategories(): PropertyCategory[] {
     const raw = localStorage.getItem(STORAGE_CATEGORIES_KEY);
     if (!raw) {
       localStorage.setItem(STORAGE_CATEGORIES_KEY, JSON.stringify(INITIAL_CATEGORIES));
+      if (isLiveSupabase) {
+        this.fetchCategories();
+      }
       return INITIAL_CATEGORIES;
     }
     try {
       const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_CATEGORIES;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+      localStorage.setItem(STORAGE_CATEGORIES_KEY, JSON.stringify(INITIAL_CATEGORIES));
+      return INITIAL_CATEGORIES;
     } catch {
       return INITIAL_CATEGORIES;
+    }
+  },
+
+  async fetchCategories(): Promise<PropertyCategory[]> {
+    if (!isLiveSupabase) return this.getCategories();
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('order', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching categories from Supabase:', error);
+        return this.getCategories();
+      }
+
+      if (data && data.length > 0) {
+        localStorage.setItem(STORAGE_CATEGORIES_KEY, JSON.stringify(data));
+        notifyCategoriesChanged();
+        return data as PropertyCategory[];
+      }
+      return this.getCategories();
+    } catch (err) {
+      console.error('Unexpected error fetching categories:', err);
+      return this.getCategories();
     }
   },
 
@@ -357,33 +580,47 @@ export const categoryService = {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
 
+    let savedCat: PropertyCategory;
+
     if (cat.id) {
       const index = categories.findIndex(c => c.id === cat.id);
       if (index >= 0) {
-        const updated: PropertyCategory = {
+        savedCat = {
           ...categories[index],
           name: cat.name.trim(),
           slug,
           description: cat.description,
         };
-        categories[index] = updated;
-        localStorage.setItem(STORAGE_CATEGORIES_KEY, JSON.stringify(categories));
-        notifyCategoriesChanged();
-        return updated;
+        categories[index] = savedCat;
+      } else {
+        savedCat = {
+          id: cat.id,
+          name: cat.name.trim(),
+          slug,
+          description: cat.description,
+          order: categories.length + 1,
+        };
+        categories.push(savedCat);
       }
+    } else {
+      savedCat = {
+        id: 'cat-' + Date.now(),
+        name: cat.name.trim(),
+        slug,
+        description: cat.description,
+        order: categories.length + 1,
+      };
+      categories.push(savedCat);
     }
 
-    const newCategory: PropertyCategory = {
-      id: 'cat-' + Date.now(),
-      name: cat.name.trim(),
-      slug,
-      description: cat.description,
-      order: categories.length + 1,
-    };
-    categories.push(newCategory);
     localStorage.setItem(STORAGE_CATEGORIES_KEY, JSON.stringify(categories));
     notifyCategoriesChanged();
-    return newCategory;
+
+    if (isLiveSupabase) {
+      safeExecute(supabase.from('categories').upsert(savedCat));
+    }
+
+    return savedCat;
   },
 
   deleteCategory(id: string): boolean {
@@ -391,12 +628,22 @@ export const categoryService = {
     const filtered = categories.filter(c => c.id !== id);
     localStorage.setItem(STORAGE_CATEGORIES_KEY, JSON.stringify(filtered));
     notifyCategoriesChanged();
+
+    if (isLiveSupabase) {
+      safeExecute(supabase.from('categories').delete().eq('id', id));
+    }
+
     return true;
   },
 
   resetToDefaults(): PropertyCategory[] {
     localStorage.setItem(STORAGE_CATEGORIES_KEY, JSON.stringify(INITIAL_CATEGORIES));
     notifyCategoriesChanged();
+
+    if (isLiveSupabase) {
+      safeExecute(supabase.from('categories').upsert(INITIAL_CATEGORIES));
+    }
+
     return INITIAL_CATEGORIES;
   }
 };
@@ -470,8 +717,6 @@ export const getPropertyTypeLabel = (type: string, categories: PropertyCategory[
 // ==========================================
 // TESTIMONIALS SERVICE & PERSISTENCE
 // ==========================================
-const STORAGE_TESTIMONIALS_KEY = 'adelina_testimonials_data';
-
 const INITIAL_TESTIMONIALS: Testimonial[] = [
   {
     id: 'test-1',
@@ -523,15 +768,14 @@ const INITIAL_TESTIMONIALS: Testimonial[] = [
   },
 ];
 
-const notifyTestimonialsChanged = () => {
-  window.dispatchEvent(new CustomEvent('adelina-testimonials-changed'));
-};
-
 export const testimonialService = {
   getTestimonials(): Testimonial[] {
     const raw = localStorage.getItem(STORAGE_TESTIMONIALS_KEY);
     if (!raw) {
       localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(INITIAL_TESTIMONIALS));
+      if (isLiveSupabase) {
+        this.fetchTestimonials();
+      }
       return INITIAL_TESTIMONIALS;
     }
     try {
@@ -552,14 +796,41 @@ export const testimonialService = {
     return all.filter(t => t.is_active !== false);
   },
 
+  async fetchTestimonials(): Promise<Testimonial[]> {
+    if (!isLiveSupabase) return this.getTestimonials();
+    try {
+      const { data, error } = await supabase
+        .from('testimonials')
+        .select('*')
+        .order('order_index', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching testimonials from Supabase:', error);
+        return this.getTestimonials();
+      }
+
+      if (data && data.length > 0) {
+        localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(data));
+        notifyTestimonialsChanged();
+        return data as Testimonial[];
+      }
+      return this.getTestimonials();
+    } catch (err) {
+      console.error('Unexpected error fetching testimonials:', err);
+      return this.getTestimonials();
+    }
+  },
+
   saveTestimonial(testData: Partial<Testimonial> & { client_name: string; quote: string }): Testimonial {
     const testimonials = this.getTestimonials();
     const nowIso = new Date().toISOString();
 
+    let target: Testimonial;
+
     if (testData.id) {
       const index = testimonials.findIndex(t => t.id === testData.id);
       if (index >= 0) {
-        const updated: Testimonial = {
+        target = {
           ...testimonials[index],
           client_name: testData.client_name.trim(),
           client_role: (testData.client_role || 'Cliente').trim(),
@@ -571,30 +842,48 @@ export const testimonialService = {
           is_active: testData.is_active !== undefined ? testData.is_active : testimonials[index].is_active,
           order_index: testData.order_index ?? testimonials[index].order_index ?? (index + 1),
         };
-        testimonials[index] = updated;
-        localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(testimonials));
-        notifyTestimonialsChanged();
-        return updated;
+        testimonials[index] = target;
+      } else {
+        target = {
+          id: testData.id,
+          client_name: testData.client_name.trim(),
+          client_role: (testData.client_role || 'Cliente').trim(),
+          quote: testData.quote.trim(),
+          rating: typeof testData.rating === 'number' ? Math.min(5, Math.max(1, testData.rating)) : 5,
+          date: testData.date || new Date().toLocaleDateString('es-AR'),
+          platform: testData.platform || 'google',
+          avatar_url: testData.avatar_url || '',
+          is_active: testData.is_active !== undefined ? testData.is_active : true,
+          order_index: testimonials.length + 1,
+          created_at: nowIso,
+        };
+        testimonials.unshift(target);
       }
+    } else {
+      target = {
+        id: 'test-' + Date.now(),
+        client_name: testData.client_name.trim(),
+        client_role: (testData.client_role || 'Cliente').trim(),
+        quote: testData.quote.trim(),
+        rating: typeof testData.rating === 'number' ? Math.min(5, Math.max(1, testData.rating)) : 5,
+        date: testData.date || new Date().toLocaleDateString('es-AR'),
+        platform: testData.platform || 'google',
+        avatar_url: testData.avatar_url || '',
+        is_active: testData.is_active !== undefined ? testData.is_active : true,
+        order_index: testimonials.length + 1,
+        created_at: nowIso,
+      };
+      testimonials.unshift(target);
     }
 
-    const newTestimonial: Testimonial = {
-      id: 'test-' + Date.now(),
-      client_name: testData.client_name.trim(),
-      client_role: (testData.client_role || 'Cliente').trim(),
-      quote: testData.quote.trim(),
-      rating: typeof testData.rating === 'number' ? Math.min(5, Math.max(1, testData.rating)) : 5,
-      date: testData.date || new Date().toLocaleDateString('es-AR'),
-      platform: testData.platform || 'google',
-      avatar_url: testData.avatar_url || '',
-      is_active: testData.is_active !== undefined ? testData.is_active : true,
-      order_index: testimonials.length + 1,
-      created_at: nowIso,
-    };
-    testimonials.unshift(newTestimonial);
     localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(testimonials));
     notifyTestimonialsChanged();
-    return newTestimonial;
+
+    if (isLiveSupabase) {
+      safeExecute(supabase.from('testimonials').upsert(target));
+    }
+
+    return target;
   },
 
   toggleActive(id: string): boolean {
@@ -602,9 +891,20 @@ export const testimonialService = {
     const index = testimonials.findIndex(t => t.id === id);
     if (index >= 0) {
       testimonials[index].is_active = !testimonials[index].is_active;
+      const updatedActive = testimonials[index].is_active;
       localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(testimonials));
       notifyTestimonialsChanged();
-      return testimonials[index].is_active;
+
+      if (isLiveSupabase) {
+        safeExecute(
+          supabase
+            .from('testimonials')
+            .update({ is_active: updatedActive })
+            .eq('id', id)
+        );
+      }
+
+      return updatedActive;
     }
     return false;
   },
@@ -614,13 +914,126 @@ export const testimonialService = {
     const filtered = testimonials.filter(t => t.id !== id);
     localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(filtered));
     notifyTestimonialsChanged();
+
+    if (isLiveSupabase) {
+      safeExecute(supabase.from('testimonials').delete().eq('id', id));
+    }
+
     return true;
   },
 
   resetToDefaults(): Testimonial[] {
     localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(INITIAL_TESTIMONIALS));
     notifyTestimonialsChanged();
+
+    if (isLiveSupabase) {
+      safeExecute(supabase.from('testimonials').upsert(INITIAL_TESTIMONIALS));
+    }
+
     return INITIAL_TESTIMONIALS;
   }
 };
+
+// ==========================================
+// AUTHENTICATION & PROFILES SERVICE
+// ==========================================
+export const authService = {
+  async login(email: string, password: string): Promise<{ user: any; profile: UserProfile | null }> {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password: password.trim(),
+    });
+    if (error) throw error;
+
+    let profile: UserProfile | null = null;
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', data.user.id)
+      .single();
+
+    if (profileData) {
+      profile = profileData as UserProfile;
+    } else {
+      profile = {
+        id: data.user.id,
+        email: data.user.email || '',
+        full_name: data.user.user_metadata?.full_name || email.split('@')[0],
+        role: (data.user.user_metadata?.role as UserRole) || 'corredor',
+      };
+    }
+
+    localStorage.setItem('adelina_admin_auth', 'true');
+    localStorage.setItem('adelina_user_profile', JSON.stringify(profile));
+    return { user: data.user, profile };
+  },
+
+  async logout(): Promise<void> {
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('Error signing out from Supabase:', err);
+    }
+    localStorage.removeItem('adelina_admin_auth');
+    localStorage.removeItem('adelina_user_profile');
+  },
+
+  getCurrentProfile(): UserProfile | null {
+    const raw = localStorage.getItem('adelina_user_profile');
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  },
+
+  async fetchCurrentProfile(): Promise<UserProfile | null> {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session?.user) return this.getCurrentProfile();
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', sessionData.session.user.id)
+      .single();
+
+    if (profile) {
+      localStorage.setItem('adelina_user_profile', JSON.stringify(profile));
+      return profile as UserProfile;
+    }
+    return this.getCurrentProfile();
+  },
+
+  async updatePassword(newPassword: string): Promise<void> {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+    if (error) throw error;
+  },
+
+  async getProfiles(): Promise<UserProfile[]> {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    return (data || []) as UserProfile[];
+  },
+
+  async updateRole(userId: string, role: UserRole): Promise<void> {
+    const { error } = await supabase.from('profiles').update({ role }).eq('id', userId);
+    if (error) throw error;
+  }
+};
+
+// Initial background sync
+if (typeof window !== 'undefined' && isLiveSupabase) {
+  setTimeout(() => {
+    propertyService.fetchProperties();
+    categoryService.fetchCategories();
+    testimonialService.fetchTestimonials();
+    leadService.fetchLeads();
+  }, 100);
+}
 

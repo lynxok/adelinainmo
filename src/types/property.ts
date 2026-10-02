@@ -61,3 +61,14 @@ export interface PropertyFilter {
   bedrooms?: number | 'all';
   searchQuery?: string;
 }
+
+export type UserRole = 'superadmin' | 'corredor';
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  full_name?: string;
+  role: UserRole;
+  created_at?: string;
+  updated_at?: string;
+}

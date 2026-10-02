@@ -14,8 +14,7 @@ import {
   Sparkles,
   Tags,
 } from 'lucide-react';
-import { propertyService, categoryService } from '../../lib/supabase';
-import { compressImageToWebP } from '../../lib/imageCompressor';
+import { propertyService, categoryService, uploadImageToSupabase } from '../../lib/supabase';
 
 interface AdminPropertyEditPageProps {
   propertyId?: string;
@@ -140,7 +139,7 @@ export const AdminPropertyEditPage: React.FC<AdminPropertyEditPageProps> = ({
     }
   };
 
-  // Image Upload handler with client-side WebP compression
+  // Image Upload handler with client-side WebP compression and Supabase Storage upload
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     setUploading(true);
@@ -150,9 +149,9 @@ export const AdminPropertyEditPage: React.FC<AdminPropertyEditPageProps> = ({
       const newImageUrls: string[] = [];
 
       for (const file of fileList) {
-        // Compress client-side to WebP
-        const { dataUrl } = await compressImageToWebP(file);
-        newImageUrls.push(dataUrl);
+        // Compress client-side to WebP and upload directly to Supabase Storage
+        const publicUrl = await uploadImageToSupabase(file, 'properties');
+        newImageUrls.push(publicUrl);
       }
 
       const updated = [...images, ...newImageUrls];
@@ -161,8 +160,8 @@ export const AdminPropertyEditPage: React.FC<AdminPropertyEditPageProps> = ({
         setFeaturedImage(updated[0]);
       }
     } catch (err) {
-      console.error('Error compressing/uploading image:', err);
-      alert('Hubo un error al procesar las imágenes.');
+      console.error('Error compressing/uploading image to Supabase Storage:', err);
+      alert('Hubo un error al procesar y subir las imágenes.');
     } finally {
       setUploading(false);
     }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Property, Lead, PropertyFilter } from './types/property';
-import { propertyService, leadService } from './lib/supabase';
+import { Property, Lead, PropertyFilter, UserProfile } from './types/property';
+import { propertyService, leadService, authService } from './lib/supabase';
 import { Navbar } from './components/public/Navbar';
 import { Footer } from './components/public/Footer';
 import { FloatingWhatsAppButton } from './components/public/FloatingWhatsAppButton';
@@ -28,24 +28,41 @@ export function App() {
   const [selectedPropertySlug, setSelectedPropertySlug] = useState<string>('');
   const [catalogFilters, setCatalogFilters] = useState<PropertyFilter | undefined>(undefined);
 
-  // Admin states
+  // Admin states & Auth
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(() => authService.getCurrentProfile());
   const [adminTab, setAdminTab] = useState<'dashboard' | 'properties' | 'property-new' | 'property-edit' | 'categories' | 'testimonials' | 'leads' | 'xml-feed'>('dashboard');
   const [editingPropertyId, setEditingPropertyId] = useState<string | undefined>(undefined);
 
   // Load initial properties & leads
-  const refreshData = () => {
+  const refreshData = async () => {
     setProperties(propertyService.getProperties());
     setLeads(leadService.getLeads());
+    try {
+      const [remoteProps, remoteLeads] = await Promise.all([
+        propertyService.fetchProperties(),
+        leadService.fetchLeads(),
+      ]);
+      if (remoteProps && remoteProps.length > 0) setProperties(remoteProps);
+      if (remoteLeads) setLeads(remoteLeads);
+    } catch (err) {
+      console.error('Error fetching fresh data from Supabase:', err);
+    }
   };
 
   useEffect(() => {
     refreshData();
 
+    window.addEventListener('adelina-properties-changed', refreshData);
+    window.addEventListener('adelina-leads-changed', refreshData);
+
     // Check saved admin auth
     const savedAuth = localStorage.getItem('adelina_admin_auth');
     if (savedAuth === 'true') {
       setIsAdminAuthenticated(true);
+      authService.fetchCurrentProfile().then((p) => {
+        if (p) setUserProfile(p);
+      });
     }
 
     // Check URL parameters (e.g. ?colleague=1&p=slug or ?p=slug)
@@ -61,6 +78,11 @@ export function App() {
         setCurrentView('detail');
       }
     }
+
+    return () => {
+      window.removeEventListener('adelina-properties-changed', refreshData);
+      window.removeEventListener('adelina-leads-changed', refreshData);
+    };
   }, []);
 
   // Navigation handlers
@@ -107,8 +129,13 @@ export function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Admin Navigation
+  // Admin Navigation with RBAC
   const handleAdminNavigateTab = (tab: string, param?: string) => {
+    if (userProfile?.role === 'corredor' && tab !== 'properties' && tab !== 'property-new' && tab !== 'property-edit') {
+      setAdminTab('properties');
+      return;
+    }
+
     if (tab === 'property-edit') {
       setEditingPropertyId(param);
       setAdminTab('property-edit');
@@ -120,9 +147,10 @@ export function App() {
     }
   };
 
-  const handleAdminLogout = () => {
-    localStorage.removeItem('adelina_admin_auth');
+  const handleAdminLogout = async () => {
+    await authService.logout();
     setIsAdminAuthenticated(false);
+    setUserProfile(null);
     setCurrentView('home');
   };
 
@@ -145,9 +173,14 @@ export function App() {
     if (!isAdminAuthenticated) {
       return (
         <AdminLoginPage
-          onLoginSuccess={() => {
+          onLoginSuccess={(profile) => {
             setIsAdminAuthenticated(true);
-            setAdminTab('dashboard');
+            if (profile) setUserProfile(profile);
+            if (profile?.role === 'corredor') {
+              setAdminTab('properties');
+            } else {
+              setAdminTab('dashboard');
+            }
           }}
           onBackToWeb={() => setCurrentView('home')}
         />
@@ -160,8 +193,9 @@ export function App() {
         onNavigateTab={handleAdminNavigateTab}
         onLogout={handleAdminLogout}
         onViewWeb={() => setCurrentView('home')}
+        userProfile={userProfile}
       >
-        {adminTab === 'dashboard' && (
+        {adminTab === 'dashboard' && userProfile?.role !== 'corredor' && (
           <AdminDashboardPage
             properties={properties}
             leads={leads}
@@ -189,19 +223,19 @@ export function App() {
             }}
           />
         )}
-        {adminTab === 'categories' && (
+        {adminTab === 'categories' && userProfile?.role !== 'corredor' && (
           <AdminCategoriesPage />
         )}
-        {adminTab === 'testimonials' && (
+        {adminTab === 'testimonials' && userProfile?.role !== 'corredor' && (
           <AdminTestimonialsPage />
         )}
-        {adminTab === 'leads' && (
+        {adminTab === 'leads' && userProfile?.role !== 'corredor' && (
           <AdminLeadsPage
             leads={leads}
             onRefresh={refreshData}
           />
         )}
-        {adminTab === 'xml-feed' && (
+        {adminTab === 'xml-feed' && userProfile?.role !== 'corredor' && (
           <XmlFeedPage properties={properties} />
         )}
       </AdminLayout>
