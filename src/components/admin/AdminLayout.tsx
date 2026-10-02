@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   X,
   Loader2,
+  Users,
 } from 'lucide-react';
 import { AdelinaLogo } from '../public/AdelinaLogo';
 import { UserProfile } from '../../types/property';
@@ -47,6 +48,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     { id: 'categories', label: 'Categorías', icon: Tags, superadminOnly: true },
     { id: 'testimonials', label: 'Testimonios', icon: Quote, superadminOnly: true },
     { id: 'leads', label: 'Consultas & Leads', icon: MessageSquare, superadminOnly: true },
+    { id: 'users', label: 'Usuarios CRM', icon: Users, superadminOnly: true },
     { id: 'xml-feed', label: 'Feeds Portales (XML)', icon: Rss, superadminOnly: true },
   ];
 

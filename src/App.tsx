@@ -19,6 +19,7 @@ import { AdminPropertyEditPage } from './pages/admin/AdminPropertyEditPage';
 import { AdminCategoriesPage } from './pages/admin/AdminCategoriesPage';
 import { AdminTestimonialsPage } from './pages/admin/AdminTestimonialsPage';
 import { AdminLeadsPage } from './pages/admin/AdminLeadsPage';
+import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { XmlFeedPage } from './pages/admin/XmlFeedPage';
 
 export function App() {
@@ -31,7 +32,7 @@ export function App() {
   // Admin states & Auth
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(() => authService.getCurrentProfile());
-  const [adminTab, setAdminTab] = useState<'dashboard' | 'properties' | 'property-new' | 'property-edit' | 'categories' | 'testimonials' | 'leads' | 'xml-feed'>('dashboard');
+  const [adminTab, setAdminTab] = useState<'dashboard' | 'properties' | 'property-new' | 'property-edit' | 'categories' | 'testimonials' | 'leads' | 'users' | 'xml-feed'>('dashboard');
   const [editingPropertyId, setEditingPropertyId] = useState<string | undefined>(undefined);
 
   // Load initial properties & leads
@@ -60,8 +61,20 @@ export function App() {
     const savedAuth = localStorage.getItem('adelina_admin_auth');
     if (savedAuth === 'true') {
       setIsAdminAuthenticated(true);
+      const current = authService.getCurrentProfile();
+      if (current) {
+        setUserProfile(current);
+        if (current.role === 'corredor') {
+          setAdminTab('properties');
+        }
+      }
       authService.fetchCurrentProfile().then((p) => {
-        if (p) setUserProfile(p);
+        if (p) {
+          setUserProfile(p);
+          if (p.role === 'corredor') {
+            setAdminTab('properties');
+          }
+        }
       });
     }
 
@@ -201,6 +214,7 @@ export function App() {
             leads={leads}
             onNavigateTab={handleAdminNavigateTab}
             onViewWeb={() => setCurrentView('home')}
+            userProfile={userProfile}
           />
         )}
         {adminTab === 'properties' && (
@@ -234,6 +248,9 @@ export function App() {
             leads={leads}
             onRefresh={refreshData}
           />
+        )}
+        {adminTab === 'users' && userProfile?.role === 'superadmin' && (
+          <AdminUsersPage userProfile={userProfile} />
         )}
         {adminTab === 'xml-feed' && userProfile?.role !== 'corredor' && (
           <XmlFeedPage properties={properties} />

@@ -1012,18 +1012,150 @@ export const authService = {
     if (error) throw error;
   },
 
+  getStoredProfiles(): UserProfile[] {
+    const raw = localStorage.getItem('adelina_cached_profiles');
+    if (!raw) return [];
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return [];
+    }
+  },
+
   async getProfiles(): Promise<UserProfile[]> {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: true });
-    if (error) throw error;
-    return (data || []) as UserProfile[];
+    if (isLiveSupabase) {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: true });
+      if (!error && data) {
+        localStorage.setItem('adelina_cached_profiles', JSON.stringify(data));
+        return data as UserProfile[];
+      }
+    }
+    return this.getStoredProfiles();
+  },
+
+  async createUser({
+    email,
+    password,
+    fullName,
+    role,
+  }: {
+    email: string;
+    password: string;
+    fullName: string;
+    role: UserRole;
+  }): Promise<UserProfile> {
+    const currentProfile = this.getCurrentProfile();
+    if (currentProfile?.role !== 'superadmin') {
+      throw new Error('Solo los usuarios con rol Superadmin tienen permisos para crear nuevos usuarios.');
+    }
+
+    if (!email || !password || !fullName) {
+      throw new Error('Por favor completá todos los campos obligatorios.');
+    }
+
+    if (password.length < 6) {
+      throw new Error('La contraseña debe tener al menos 6 caracteres.');
+    }
+
+    if (isLiveSupabase) {
+      // Cliente aislado sin persistencia de sesión para no alterar la sesión del superadmin logueado
+      const isolatedClient = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false,
+        },
+      });
+
+      const { data, error } = await isolatedClient.auth.signUp({
+        email: email.trim(),
+        password: password.trim(),
+        options: {
+          data: {
+            full_name: fullName.trim(),
+            role: role,
+          },
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data.user) {
+        throw new Error('No se pudo registrar el usuario en Supabase Auth.');
+      }
+
+      const newProfile: UserProfile = {
+        id: data.user.id,
+        email: email.trim(),
+        full_name: fullName.trim(),
+        role: role,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // Asegurar sincronización en public.profiles
+      await supabase.from('profiles').upsert(newProfile);
+
+      const existing = this.getStoredProfiles();
+      localStorage.setItem('adelina_cached_profiles', JSON.stringify([...existing.filter(p => p.id !== newProfile.id), newProfile]));
+
+      return newProfile;
+    } else {
+      const mockProfile: UserProfile = {
+        id: `mock-user-${Date.now()}`,
+        email: email.trim(),
+        full_name: fullName.trim(),
+        role: role,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      const existing = this.getStoredProfiles();
+      localStorage.setItem('adelina_cached_profiles', JSON.stringify([...existing, mockProfile]));
+      return mockProfile;
+    }
+  },
+
+  async deleteProfile(userId: string): Promise<void> {
+    const currentProfile = this.getCurrentProfile();
+    if (currentProfile?.role !== 'superadmin') {
+      throw new Error('Solo los usuarios Superadmin pueden eliminar usuarios.');
+    }
+    if (currentProfile.id === userId) {
+      throw new Error('No podés eliminar tu propia cuenta activa de Superadmin.');
+    }
+
+    if (isLiveSupabase) {
+      const { error } = await supabase.from('profiles').delete().eq('id', userId);
+      if (error) throw error;
+    }
+
+    const existing = this.getStoredProfiles();
+    const updated = existing.filter((p) => p.id !== userId);
+    localStorage.setItem('adelina_cached_profiles', JSON.stringify(updated));
   },
 
   async updateRole(userId: string, role: UserRole): Promise<void> {
-    const { error } = await supabase.from('profiles').update({ role }).eq('id', userId);
-    if (error) throw error;
+    const currentProfile = this.getCurrentProfile();
+    if (currentProfile?.role !== 'superadmin') {
+      throw new Error('Solo los usuarios Superadmin pueden modificar roles.');
+    }
+    if (currentProfile.id === userId && role !== 'superadmin') {
+      throw new Error('No podés revocar tus propios privilegios de Superadmin.');
+    }
+
+    if (isLiveSupabase) {
+      const { error } = await supabase.from('profiles').update({ role }).eq('id', userId);
+      if (error) throw error;
+    }
+
+    const existing = this.getStoredProfiles();
+    const updated = existing.map((p) => (p.id === userId ? { ...p, role } : p));
+    localStorage.setItem('adelina_cached_profiles', JSON.stringify(updated));
   }
 };
 

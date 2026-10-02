@@ -1,5 +1,5 @@
 import React from 'react';
-import { Property, Lead } from '../../types/property';
+import { Property, Lead, UserProfile } from '../../types/property';
 import { Building2, Sparkles, MessageCircle, TrendingUp, Plus, ArrowRight, ExternalLink, Share2, Rss, Quote, Star } from 'lucide-react';
 import { testimonialService } from '../../lib/supabase';
 
@@ -8,6 +8,7 @@ interface AdminDashboardPageProps {
   leads: Lead[];
   onNavigateTab: (tab: string, param?: string) => void;
   onViewWeb: () => void;
+  userProfile?: UserProfile | null;
 }
 
 export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
@@ -15,11 +16,25 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   leads,
   onNavigateTab,
   onViewWeb,
+  userProfile,
 }) => {
   const activeCount = properties.filter(p => p.status === 'available').length;
   const featuredCount = properties.filter(p => p.is_featured).length;
   const newLeadsCount = leads.filter(l => l.status === 'new').length;
   const activeTestimonialsCount = testimonialService.getActiveTestimonials().length;
+
+  const userGreetingName = React.useMemo(() => {
+    if (!userProfile) return 'Adelina';
+    if (userProfile.full_name?.trim()) {
+      const firstName = userProfile.full_name.trim().split(/\s+/)[0];
+      return firstName || userProfile.full_name.trim();
+    }
+    if (userProfile.email) {
+      const emailPrefix = userProfile.email.split('@')[0];
+      return emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
+    }
+    return 'Adelina';
+  }, [userProfile]);
 
   return (
     <div className="space-y-8">
@@ -31,7 +46,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             <span>Panel de Control Inmobiliario</span>
           </div>
           <h1 className="font-archivo text-2xl sm:text-3xl font-bold tracking-tight">
-            Hola, Adelina
+            Hola, {userGreetingName}
           </h1>
           <p className="text-xs sm:text-sm text-zinc-400 font-light max-w-xl">
             Tenés <strong className="text-white font-semibold">{activeCount}</strong> propiedades activas y <strong className="text-adelina-accent font-semibold">{newLeadsCount}</strong> consultas nuevas pendientes de respuesta.
