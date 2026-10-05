@@ -23,8 +23,8 @@ import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { XmlFeedPage } from './pages/admin/XmlFeedPage';
 
 export function App() {
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [leads, setLeads] = useState<Lead[]>([]);
+  const [properties, setProperties] = useState<Property[]>(() => propertyService.getProperties());
+  const [leads, setLeads] = useState<Lead[]>(() => leadService.getLeads());
   const [currentView, setCurrentView] = useState<'home' | 'catalog' | 'buy-sell' | 'detail' | 'colleague' | 'valuation' | 'admin' | 'about'>('home');
   const [selectedPropertySlug, setSelectedPropertySlug] = useState<string>('');
   const [catalogFilters, setCatalogFilters] = useState<PropertyFilter | undefined>(undefined);
@@ -37,7 +37,8 @@ export function App() {
 
   // Load initial properties & leads
   const refreshData = async () => {
-    setProperties(propertyService.getProperties());
+    const cached = propertyService.getProperties();
+    if (cached.length > 0) setProperties(cached);
     setLeads(leadService.getLeads());
     try {
       const [remoteProps, remoteLeads] = await Promise.all([

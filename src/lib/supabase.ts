@@ -173,7 +173,7 @@ const INITIAL_PROPERTIES: Property[] = [
   }
 ];
 
-const STORAGE_PROPERTIES_KEY = 'adelina_properties_data_v1';
+const STORAGE_PROPERTIES_KEY = 'adelina_properties_data_v2';
 const STORAGE_LEADS_KEY = 'adelina_leads_data_v1';
 const STORAGE_CATEGORIES_KEY = 'adelina_categories_data_v1';
 const STORAGE_TESTIMONIALS_KEY = 'adelina_testimonials_data';
@@ -256,16 +256,21 @@ export const propertyService = {
   getProperties(): Property[] {
     const raw = localStorage.getItem(STORAGE_PROPERTIES_KEY);
     if (!raw) {
-      localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(INITIAL_PROPERTIES));
       if (isLiveSupabase) {
         this.fetchProperties();
       }
-      return INITIAL_PROPERTIES;
+      return [];
     }
     try {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        // Discard any legacy demo mock items (prop-1, prop-2, etc.)
+        const realItems = parsed.filter(p => !['prop-1', 'prop-2', 'prop-3', 'prop-4', 'prop-5'].includes(p.id));
+        return realItems;
+      }
+      return [];
     } catch {
-      return INITIAL_PROPERTIES;
+      return [];
     }
   },
 
@@ -284,6 +289,7 @@ export const propertyService = {
 
       if (data && data.length > 0) {
         localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(data));
+        notifyPropertiesChanged();
         return data as Property[];
       }
       return this.getProperties();
