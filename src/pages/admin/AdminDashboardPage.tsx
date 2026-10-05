@@ -23,6 +23,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const newLeadsCount = leads.filter(l => l.status === 'new').length;
   const activeTestimonialsCount = testimonialService.getActiveTestimonials().length;
 
+  const [brokenImages, setBrokenImages] = React.useState<Record<string, boolean>>({});
+
   const userGreetingName = React.useMemo(() => {
     if (!userProfile) return 'Adelina';
     if (userProfile.full_name?.trim()) {
@@ -168,11 +170,18 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 hover:bg-zinc-100 transition-colors border border-zinc-100 gap-3"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <img
-                    src={p.featured_image || p.images[0] || '/assets/chic-living.jpg'}
-                    alt={p.title}
-                    className="w-12 h-12 rounded-xl object-cover shrink-0"
-                  />
+                  <div className="w-12 h-12 rounded-xl bg-zinc-100 border border-zinc-200/80 shrink-0 overflow-hidden flex items-center justify-center">
+                    {!brokenImages[p.id] && (p.featured_image || p.images?.[0]) ? (
+                      <img
+                        src={p.featured_image || p.images[0]}
+                        alt=""
+                        className="w-full h-full object-cover"
+                        onError={() => setBrokenImages(prev => ({ ...prev, [p.id]: true }))}
+                      />
+                    ) : (
+                      <Building2 className="w-5 h-5 text-zinc-400" />
+                    )}
+                  </div>
                   <div className="min-w-0">
                     <h4 className="font-archivo font-bold text-xs sm:text-sm text-zinc-900 truncate">
                       {p.title}

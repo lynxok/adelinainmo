@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Copy,
   SlidersHorizontal,
+  Building2,
 } from 'lucide-react';
 import { propertyService } from '../../lib/supabase';
 import { generateColleagueWhatsAppText } from '../../lib/whatsappUtils';
@@ -34,6 +35,7 @@ export const AdminPropertiesPage: React.FC<AdminPropertiesPageProps> = ({
   const [selectedForShare, setSelectedForShare] = useState<Property | null>(null);
   const [copiedText, setCopiedText] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [brokenImages, setBrokenImages] = useState<Record<string, boolean>>({});
 
   const filtered = properties.filter((p) => {
     if (statusFilter !== 'all' && p.status !== statusFilter) return false;
@@ -151,11 +153,18 @@ export const AdminPropertiesPage: React.FC<AdminPropertiesPageProps> = ({
                   {/* Property Info */}
                   <td className="py-3.5 px-4">
                     <div className="flex items-center gap-3">
-                      <img
-                        src={property.featured_image || property.images[0] || '/assets/chic-living.jpg'}
-                        alt={property.title}
-                        className="w-14 h-14 rounded-xl object-cover border border-zinc-200 shrink-0"
-                      />
+                      <div className="w-14 h-14 rounded-xl bg-zinc-100 border border-zinc-200 shrink-0 overflow-hidden flex items-center justify-center">
+                        {!brokenImages[property.id] && (property.featured_image || property.images?.[0]) ? (
+                          <img
+                            src={property.featured_image || property.images[0]}
+                            alt=""
+                            className="w-full h-full object-cover"
+                            onError={() => setBrokenImages((prev) => ({ ...prev, [property.id]: true }))}
+                          />
+                        ) : (
+                          <Building2 className="w-6 h-6 text-zinc-400" />
+                        )}
+                      </div>
                       <div className="min-w-0">
                         <span className="font-archivo font-bold text-xs sm:text-sm text-zinc-900 block truncate max-w-xs">
                           {property.title}

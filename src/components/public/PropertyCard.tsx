@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Property } from '../../types/property';
-import { Bed, Bath, Maximize2, MapPin, MessageCircle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Bed, Bath, Maximize2, MapPin, MessageCircle, ArrowRight, ShieldCheck, Building2 } from 'lucide-react';
 import { getWhatsAppInquiryUrl } from '../../lib/whatsappUtils';
 import { getPropertyTypeLabel } from '../../lib/supabase';
 
@@ -15,6 +15,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   onSelect,
   isColleagueView = false,
 }) => {
+  const [imgError, setImgError] = useState(false);
   const displayPrice = property.currency === 'USD'
     ? `USD $${(property.price_usd || 0).toLocaleString('es-AR')}`
     : `$${(property.price_ars || 0).toLocaleString('es-AR')}`;
@@ -31,12 +32,20 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     <div className="group bg-white rounded-2xl overflow-hidden border border-adelina-border/60 hover:border-adelina-accent/60 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full">
       {/* Image Container with Badges */}
       <div className="relative aspect-[4/3] overflow-hidden bg-zinc-100 cursor-pointer" onClick={() => onSelect(property.slug)}>
-        <img
-          src={mainImage}
-          alt={property.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          loading="lazy"
-        />
+        {!imgError && mainImage ? (
+          <img
+            src={mainImage}
+            alt={property.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            loading="lazy"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-100 text-zinc-400 gap-2">
+            <Building2 className="w-10 h-10 opacity-50" />
+            <span className="text-xs font-medium text-zinc-400">Sin imagen disponible</span>
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
 
         {/* Top Badges */}

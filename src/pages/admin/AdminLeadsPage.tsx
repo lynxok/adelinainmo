@@ -9,6 +9,7 @@ import {
   Archive,
   Search,
   ExternalLink,
+  Trash2,
 } from 'lucide-react';
 import { leadService } from '../../lib/supabase';
 
@@ -37,6 +38,13 @@ export const AdminLeadsPage: React.FC<AdminLeadsPageProps> = ({ leads, onRefresh
   const handleStatusChange = (id: string, newStatus: Lead['status']) => {
     leadService.updateLeadStatus(id, newStatus);
     onRefresh();
+  };
+
+  const handleDelete = (id: string, name: string) => {
+    if (window.confirm(`¿Estás segura de eliminar definitivamente la consulta de "${name}"?`)) {
+      leadService.deleteLead(id);
+      onRefresh();
+    }
   };
 
   const getWhatsAppReplyUrl = (phone: string, name: string) => {
@@ -188,6 +196,14 @@ export const AdminLeadsPage: React.FC<AdminLeadsPageProps> = ({ leads, onRefresh
                       Marcar como contactado
                     </button>
                   )}
+
+                  <button
+                    onClick={() => handleDelete(lead.id, lead.full_name)}
+                    title="Eliminar Consulta"
+                    className="p-2 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors border border-transparent hover:border-rose-100"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             </div>

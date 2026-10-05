@@ -284,7 +284,6 @@ export const propertyService = {
 
       if (data && data.length > 0) {
         localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(data));
-        notifyPropertiesChanged();
         return data as Property[];
       }
       return this.getProperties();
@@ -299,7 +298,7 @@ export const propertyService = {
     return properties.find(p => p.slug === slug || p.id === slug);
   },
 
-  saveProperty(property: Omit<Property, 'id' | 'created_at' | 'updated_at'> & { id?: string }): Property {
+  async saveProperty(property: Omit<Property, 'id' | 'created_at' | 'updated_at'> & { id?: string }): Promise<Property> {
     const properties = this.getProperties();
     const now = new Date().toISOString();
 
@@ -338,13 +337,17 @@ export const propertyService = {
       properties.unshift(targetProperty);
     }
 
+    // Sync with Supabase first if online
+    if (isLiveSupabase) {
+      const { error } = await supabase.from('properties').upsert(targetProperty);
+      if (error) {
+        console.error('Error saving property to Supabase:', error);
+        throw new Error(error.message || 'Error al guardar la propiedad en la base de datos');
+      }
+    }
+
     localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(properties));
     notifyPropertiesChanged();
-
-    // Async sync with Supabase
-    if (isLiveSupabase) {
-      safeExecute(supabase.from('properties').upsert(targetProperty));
-    }
 
     return targetProperty;
   },
@@ -414,37 +417,12 @@ export const leadService = {
   getLeads(): Lead[] {
     const raw = localStorage.getItem(STORAGE_LEADS_KEY);
     if (!raw) {
-      const initialLeads: Lead[] = [
-        {
-          id: 'lead-1',
-          property_id: 'prop-1',
-          property_title: 'Casa en Barrio Privado',
-          full_name: 'Mariano Gómez',
-          phone: '+54 9 343 456-7890',
-          email: 'mariano.gomez@gmail.com',
-          message: 'Hola! Estoy muy interesado en la casa en Barrio Privado. Quisiera coordinar una visita y conocer condiciones.',
-          source: 'web_form',
-          status: 'new',
-          created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
-        },
-        {
-          id: 'lead-2',
-          property_id: 'prop-2',
-          property_title: 'Departamento Centro con Vista',
-          full_name: 'Carolina Benítez',
-          phone: '+54 9 343 512-3456',
-          email: 'caro.benitez@hotmail.com',
-          message: 'Buenas tardes! Quisiera coordinar una visita para este viernes por la tarde.',
-          source: 'whatsapp_click',
-          status: 'contacted',
-          created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
-        }
-      ];
-      localStorage.setItem(STORAGE_LEADS_KEY, JSON.stringify(initialLeads));
       if (isLiveSupabase) {
+        localStorage.setItem(STORAGE_LEADS_KEY, JSON.stringify([]));
         this.fetchLeads();
+        return [];
       }
-      return initialLeads;
+      return [];
     }
     try {
       return JSON.parse(raw);
@@ -468,7 +446,6 @@ export const leadService = {
 
       if (data) {
         localStorage.setItem(STORAGE_LEADS_KEY, JSON.stringify(data));
-        notifyLeadsChanged();
         return data as Lead[];
       }
       return this.getLeads();
@@ -509,6 +486,19 @@ export const leadService = {
         safeExecute(supabase.from('leads').update({ status }).eq('id', id));
       }
     }
+  },
+
+  deleteLead(id: string): boolean {
+    const leads = this.getLeads();
+    const filtered = leads.filter(item => item.id !== id);
+    localStorage.setItem(STORAGE_LEADS_KEY, JSON.stringify(filtered));
+    notifyLeadsChanged();
+
+    if (isLiveSupabase) {
+      safeExecute(supabase.from('leads').delete().eq('id', id));
+    }
+
+    return true;
   }
 };
 
@@ -560,7 +550,6 @@ export const categoryService = {
 
       if (data && data.length > 0) {
         localStorage.setItem(STORAGE_CATEGORIES_KEY, JSON.stringify(data));
-        notifyCategoriesChanged();
         return data as PropertyCategory[];
       }
       return this.getCategories();
@@ -811,7 +800,6 @@ export const testimonialService = {
 
       if (data && data.length > 0) {
         localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(data));
-        notifyTestimonialsChanged();
         return data as Testimonial[];
       }
       return this.getTestimonials();

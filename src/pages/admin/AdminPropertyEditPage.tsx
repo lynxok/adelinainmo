@@ -93,6 +93,13 @@ export const AdminPropertyEditPage: React.FC<AdminPropertyEditPageProps> = ({
   const [status, setStatus] = useState<PropertyStatus>('available');
 
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number; percent: number }>({
+    current: 0,
+    total: 0,
+    percent: 0,
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   // Load existing property data if editing
@@ -139,19 +146,27 @@ export const AdminPropertyEditPage: React.FC<AdminPropertyEditPageProps> = ({
     }
   };
 
-  // Image Upload handler with client-side WebP compression and Supabase Storage upload
+  // Image Upload handler with progress tracking, WebP compression and Supabase Storage upload
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
+    const fileList = Array.from(e.target.files);
     setUploading(true);
+    setUploadProgress({ current: 0, total: fileList.length, percent: 0 });
 
     try {
-      const fileList = Array.from(e.target.files);
       const newImageUrls: string[] = [];
+      let completed = 0;
 
       for (const file of fileList) {
         // Compress client-side to WebP and upload directly to Supabase Storage
         const publicUrl = await uploadImageToSupabase(file, 'properties');
         newImageUrls.push(publicUrl);
+        completed++;
+        setUploadProgress({
+          current: completed,
+          total: fileList.length,
+          percent: Math.round((completed / fileList.length) * 100),
+        });
       }
 
       const updated = [...images, ...newImageUrls];
@@ -161,9 +176,10 @@ export const AdminPropertyEditPage: React.FC<AdminPropertyEditPageProps> = ({
       }
     } catch (err) {
       console.error('Error compressing/uploading image to Supabase Storage:', err);
-      alert('Hubo un error al procesar y subir las imágenes.');
+      alert('Hubo un error al procesar y subir una o más imágenes. Por favor intentá nuevamente.');
     } finally {
       setUploading(false);
+      setUploadProgress({ current: 0, total: 0, percent: 0 });
     }
   };
 
@@ -191,41 +207,55 @@ export const AdminPropertyEditPage: React.FC<AdminPropertyEditPageProps> = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (uploading) {
+      alert('Por favor aguardá a que terminen de subirse las imágenes antes de guardar.');
+      return;
+    }
+    if (isSaving) return;
 
-    const newPropertyData = {
-      id: propertyId,
-      title,
-      slug: slug || 'inmueble-' + Date.now(),
-      description,
-      operation_type: operationType,
-      property_type: propertyType,
-      currency,
-      price_usd: currency === 'USD' ? Number(priceUsd) || 0 : undefined,
-      price_ars: currency === 'ARS' ? Number(priceArs) || 0 : undefined,
-      location_city: locationCity,
-      location_neighborhood: locationNeighborhood,
-      address_approx: addressApprox,
-      google_maps_url: googleMapsUrl.trim() || undefined,
-      bedrooms: Number(bedrooms) || 0,
-      bathrooms: Number(bathrooms) || 0,
-      garages: Number(garages) || 0,
-      covered_area_sqm: Number(coveredArea) || 0,
-      total_area_sqm: Number(totalArea) || 0,
-      amenities,
-      images: images.length > 0 ? images : ['/assets/chic-living.jpg'],
-      featured_image: featuredImage || images[0] || '/assets/chic-living.jpg',
-      is_featured: isFeatured,
-      status,
-    };
+    setIsSaving(true);
+    setSaveError(null);
 
-    propertyService.saveProperty(newPropertyData);
-    setSavedSuccess(true);
+    try {
+      const newPropertyData = {
+        id: propertyId,
+        title,
+        slug: slug || 'inmueble-' + Date.now(),
+        description,
+        operation_type: operationType,
+        property_type: propertyType,
+        currency,
+        price_usd: currency === 'USD' ? Number(priceUsd) || 0 : undefined,
+        price_ars: currency === 'ARS' ? Number(priceArs) || 0 : undefined,
+        location_city: locationCity,
+        location_neighborhood: locationNeighborhood,
+        address_approx: addressApprox,
+        google_maps_url: googleMapsUrl.trim() || undefined,
+        bedrooms: Number(bedrooms) || 0,
+        bathrooms: Number(bathrooms) || 0,
+        garages: Number(garages) || 0,
+        covered_area_sqm: Number(coveredArea) || 0,
+        total_area_sqm: Number(totalArea) || 0,
+        amenities,
+        images: images.length > 0 ? images : ['/assets/chic-living.jpg'],
+        featured_image: featuredImage || images[0] || '/assets/chic-living.jpg',
+        is_featured: isFeatured,
+        status,
+      };
 
-    setTimeout(() => {
-      onSaved();
-    }, 800);
+      await propertyService.saveProperty(newPropertyData);
+      setSavedSuccess(true);
+
+      setTimeout(() => {
+        onSaved();
+      }, 700);
+    } catch (err: any) {
+      console.error('Error al guardar propiedad:', err);
+      setSaveError(err.message || 'Error al conectar con la base de datos. Por favor intentá nuevamente.');
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -252,6 +282,22 @@ export const AdminPropertyEditPage: React.FC<AdminPropertyEditPageProps> = ({
         </div>
       )}
 
+      {saveError && (
+        <div className="bg-rose-50 text-rose-800 p-4 rounded-2xl border border-rose-200 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <X className="w-5 h-5 text-rose-600 shrink-0" />
+            <span className="text-xs sm:text-sm font-medium">{saveError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSaveError(null)}
+            className="text-rose-400 hover:text-rose-700 p-1"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* 1. SECCIÓN MULTIMEDIA & FOTOS (Con compresión WebP en cliente) */}
         <div className="bg-white p-6 sm:p-8 rounded-3xl border border-zinc-200 shadow-sm space-y-4">
@@ -271,22 +317,49 @@ export const AdminPropertyEditPage: React.FC<AdminPropertyEditPageProps> = ({
           </div>
 
           {/* Upload Drop Area */}
-          <label className="border-2 border-dashed border-zinc-300 hover:border-adelina-accent rounded-3xl p-8 flex flex-col items-center justify-center cursor-pointer transition-colors bg-zinc-50/50 hover:bg-zinc-50">
+          <label className={`border-2 border-dashed rounded-3xl p-8 flex flex-col items-center justify-center transition-all bg-zinc-50/50 ${
+            uploading ? 'border-adelina-accent/50 bg-adelina-accent/5 cursor-wait' : 'border-zinc-300 hover:border-adelina-accent hover:bg-zinc-50 cursor-pointer'
+          }`}>
             <input
               type="file"
               multiple
               accept="image/*"
               onChange={handleFileSelect}
+              disabled={uploading || isSaving}
               className="hidden"
             />
-            <UploadCloud className="w-10 h-10 text-adelina-accent mb-2" />
+            <UploadCloud className={`w-10 h-10 mb-2 ${uploading ? 'text-adelina-accent animate-pulse' : 'text-adelina-accent'}`} />
             <span className="font-archivo font-bold text-xs sm:text-sm text-zinc-800">
-              {uploading ? 'Procesando y comprimiendo a WebP...' : 'Hacé clic o arrastrá fotos aquí'}
+              {uploading
+                ? `Procesando y subiendo fotos (${uploadProgress.current}/${uploadProgress.total})...`
+                : 'Hacé clic o arrastrá fotos aquí'}
             </span>
             <span className="text-[11px] text-zinc-400 font-light mt-1">
-              Formatos JPG, PNG, WEBP. Se optimizan automáticamente.
+              Formatos JPG, PNG, WEBP. Podés seleccionar múltiples fotos a la vez.
             </span>
           </label>
+
+          {/* Upload Progress Bar */}
+          {uploading && (
+            <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-4 space-y-2 animate-fadeIn">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-medium text-zinc-700 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-adelina-accent animate-ping" />
+                  Subiendo y optimizando fotos ({uploadProgress.current} de {uploadProgress.total})
+                </span>
+                <span className="font-mono font-bold text-adelina-dark">{uploadProgress.percent}%</span>
+              </div>
+              <div className="w-full h-2.5 bg-zinc-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-adelina-dark transition-all duration-300 ease-out rounded-full"
+                  style={{ width: `${uploadProgress.percent}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-zinc-400">
+                Aguardá un momento mientras se optimizan en alta resolución. El botón de publicar se habilitará al finalizar.
+              </p>
+            </div>
+          )}
 
           {/* Photos Grid & Cover Selector */}
           {images.length > 0 && (
@@ -672,17 +745,37 @@ export const AdminPropertyEditPage: React.FC<AdminPropertyEditPageProps> = ({
           <button
             type="button"
             onClick={onBack}
-            className="bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-6 py-3 rounded-xl text-xs sm:text-sm font-medium transition-colors"
+            disabled={uploading || isSaving}
+            className="bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-6 py-3 rounded-xl text-xs sm:text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancelar
           </button>
 
           <button
             type="submit"
-            className="bg-adelina-dark hover:bg-black text-white px-8 py-3 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 shadow-lg transition-all active:scale-95"
+            disabled={uploading || isSaving}
+            className={`px-8 py-3 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 shadow-lg transition-all ${
+              uploading || isSaving
+                ? 'bg-zinc-400 text-white cursor-not-allowed'
+                : 'bg-adelina-dark hover:bg-black text-white active:scale-95'
+            }`}
           >
-            <Save className="w-4 h-4 text-adelina-accent" />
-            <span>{isEditing ? 'Guardar Cambios' : 'Publicar Inmueble'}</span>
+            {isSaving ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>Guardando en el servidor...</span>
+              </>
+            ) : uploading ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>Subiendo fotos ({uploadProgress.percent}%)...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 text-adelina-accent" />
+                <span>{isEditing ? 'Guardar Cambios' : 'Publicar Inmueble'}</span>
+              </>
+            )}
           </button>
         </div>
       </form>

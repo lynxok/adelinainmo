@@ -13,58 +13,83 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
   onSelectProperty,
   onViewAll,
 }) => {
-  // Designer properties list matching Figma screenshot
-  const figmaProperties = [
-    {
-      id: 'prop-1',
-      slug: 'casa-barrio-privado-parana',
-      title: 'Casa en Barrio Privado',
-      location: 'Paraná, Entre Ríos.',
-      specs: '200m²  |  3 Dormi.  |  2 Baños',
-      priceFormatted: 'USD 185.000',
-      image: '/assets/property-house-private.jpg',
-    },
-    {
-      id: 'prop-2',
-      slug: 'departamento-centro-parana',
-      title: 'Departamento Centro',
-      location: 'Paraná, Entre Ríos.',
-      specs: '95m²  |  2 Dormi.  |  1 Baños',
-      priceFormatted: 'USD 120.000',
-      image: '/assets/property-dept-curved.jpg',
-    },
-    {
-      id: 'prop-3',
-      slug: 'terreno-colonia-avellaneda',
-      title: 'Terreno - Lote',
-      location: 'Colonia Avellaneda, Entre Ríos.',
-      specs: '1.000m²',
-      priceFormatted: 'USD 28.000',
-      image: '/assets/property-land-lot.jpg',
-    },
-    // Extra card for carousel navigation
-    {
-      id: 'prop-4',
-      slug: 'casa-estilo-minimalista-parana',
-      title: 'Casa Moderna Parque',
-      location: 'Paraná, Entre Ríos.',
-      specs: '240m²  |  3 Dormi.  |  3 Baños',
-      priceFormatted: 'USD 215.000',
-      image: '/assets/hero-living.jpg',
-    },
-  ];
+  // Prioritize active featured properties from DB, fallback to Figma demo properties
+  const displayProperties = React.useMemo(() => {
+    const valid = properties.filter((p) => p.status !== 'hidden');
+    const featured = valid.filter((p) => p.is_featured);
+    const pool = featured.length > 0 ? featured : valid;
+
+    if (pool.length > 0) {
+      return pool.map((p) => {
+        const specsParts: string[] = [];
+        const area = p.total_area_sqm || p.covered_area_sqm;
+        if (area) specsParts.push(`${area}m²`);
+        if (p.bedrooms > 0) specsParts.push(`${p.bedrooms} Dormi.`);
+        if (p.bathrooms > 0) specsParts.push(`${p.bathrooms} Baños`);
+
+        const formattedPrice =
+          p.currency === 'USD'
+            ? `USD ${(p.price_usd || 0).toLocaleString('es-AR')}`
+            : `$ ${(p.price_ars || 0).toLocaleString('es-AR')}`;
+
+        return {
+          id: p.id,
+          slug: p.slug,
+          title: p.title,
+          location: `${p.location_neighborhood || ''}${p.location_neighborhood ? ', ' : ''}${p.location_city}.`,
+          specs: specsParts.join('  |  ') || 'Consultar detalles',
+          priceFormatted: formattedPrice,
+          image: p.featured_image || p.images?.[0] || '/assets/property-house-private.jpg',
+          status: p.status,
+        };
+      });
+    }
+
+    return [
+      {
+        id: 'prop-1',
+        slug: 'casa-barrio-privado-parana',
+        title: 'Casa en Barrio Privado',
+        location: 'Paraná, Entre Ríos.',
+        specs: '200m²  |  3 Dormi.  |  2 Baños',
+        priceFormatted: 'USD 185.000',
+        image: '/assets/property-house-private.jpg',
+        status: 'available',
+      },
+      {
+        id: 'prop-2',
+        slug: 'departamento-centro-parana',
+        title: 'Departamento Centro',
+        location: 'Paraná, Entre Ríos.',
+        specs: '95m²  |  2 Dormi.  |  1 Baños',
+        priceFormatted: 'USD 120.000',
+        image: '/assets/property-dept-curved.jpg',
+        status: 'available',
+      },
+      {
+        id: 'prop-3',
+        slug: 'terreno-colonia-avellaneda',
+        title: 'Terreno - Lote',
+        location: 'Colonia Avellaneda, Entre Ríos.',
+        specs: '1.000m²',
+        priceFormatted: 'USD 28.000',
+        image: '/assets/property-land-lot.jpg',
+        status: 'available',
+      },
+    ];
+  }, [properties]);
 
   const [desktopIndex, setDesktopIndex] = useState(0);
   const [mobileIndex, setMobileIndex] = useState(0);
   const mobileScrollRef = useRef<HTMLDivElement>(null);
-  const visibleCards = 3;
+  const visibleCards = Math.min(3, Math.max(1, displayProperties.length));
 
   const handlePrevDesktop = () => {
-    setDesktopIndex((prev) => (prev > 0 ? prev - 1 : figmaProperties.length - visibleCards));
+    setDesktopIndex((prev) => (prev > 0 ? prev - 1 : Math.max(0, displayProperties.length - visibleCards)));
   };
 
   const handleNextDesktop = () => {
-    setDesktopIndex((prev) => (prev + visibleCards < figmaProperties.length ? prev + 1 : 0));
+    setDesktopIndex((prev) => (prev + visibleCards < displayProperties.length ? prev + 1 : 0));
   };
 
   const scrollToMobileCard = (index: number) => {
@@ -82,12 +107,12 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
   };
 
   const handlePrevMobile = () => {
-    const nextIdx = mobileIndex > 0 ? mobileIndex - 1 : figmaProperties.length - 1;
+    const nextIdx = mobileIndex > 0 ? mobileIndex - 1 : displayProperties.length - 1;
     scrollToMobileCard(nextIdx);
   };
 
   const handleNextMobile = () => {
-    const nextIdx = mobileIndex < figmaProperties.length - 1 ? mobileIndex + 1 : 0;
+    const nextIdx = mobileIndex < displayProperties.length - 1 ? mobileIndex + 1 : 0;
     scrollToMobileCard(nextIdx);
   };
 
@@ -98,7 +123,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
     const cardWidth = container.offsetWidth * 0.82;
     if (cardWidth > 0) {
       const activeIdx = Math.min(
-        figmaProperties.length - 1,
+        displayProperties.length - 1,
         Math.max(0, Math.round(scrollLeft / cardWidth))
       );
       setMobileIndex(activeIdx);
@@ -106,7 +131,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
   };
 
   // Slice cards for desktop carousel window
-  const currentDesktopItems = figmaProperties.slice(desktopIndex, desktopIndex + visibleCards);
+  const currentDesktopItems = displayProperties.slice(desktopIndex, desktopIndex + visibleCards);
 
   return (
     <section className="bg-[#F5F5F5] py-20 sm:py-28 px-4 sm:px-6 lg:px-12 border-b border-zinc-200/60 overflow-hidden">
@@ -140,6 +165,16 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
                   alt={prop.title}
                   className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                 />
+                {prop.status === 'reserved' && (
+                  <span className="absolute top-3 right-3 bg-amber-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
+                    Reservada
+                  </span>
+                )}
+                {prop.status === 'sold' && (
+                  <span className="absolute top-3 right-3 bg-rose-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
+                    Vendida
+                  </span>
+                )}
               </div>
 
               {/* Text Info */}
@@ -167,7 +202,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
           onScroll={handleMobileScroll}
           className="flex md:hidden overflow-x-auto snap-x snap-mandatory no-scrollbar gap-4 -mx-4 px-4 pb-2 scroll-smooth"
         >
-          {figmaProperties.map((prop, idx) => (
+          {displayProperties.map((prop, idx) => (
             <div
               key={prop.id}
               onClick={() => onSelectProperty(prop.slug)}
@@ -180,6 +215,16 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
                   alt={prop.title}
                   className="w-full h-full object-cover object-center"
                 />
+                {prop.status === 'reserved' && (
+                  <span className="absolute top-3 right-3 bg-amber-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
+                    Reservada
+                  </span>
+                )}
+                {prop.status === 'sold' && (
+                  <span className="absolute top-3 right-3 bg-rose-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
+                    Vendida
+                  </span>
+                )}
               </div>
 
               {/* Text Info */}
@@ -205,7 +250,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2 sm:pt-4">
           {/* Mobile Dots */}
           <div className="flex md:hidden items-center gap-1.5">
-            {figmaProperties.map((_, idx) => (
+            {displayProperties.map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => scrollToMobileCard(idx)}
