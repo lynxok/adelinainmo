@@ -13,6 +13,8 @@ import {
   MapPin,
   Sparkles,
   Tags,
+  AlertTriangle,
+  Loader2,
 } from 'lucide-react';
 import { propertyService, categoryService, uploadImageToSupabase } from '../../lib/supabase';
 
@@ -101,6 +103,43 @@ export const AdminPropertyEditPage: React.FC<AdminPropertyEditPageProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  const isBusy = uploading || isSaving;
+
+  // Sync global window flag to guard tab switches or external navigation
+  useEffect(() => {
+    (window as any).__ADELINA_IS_SAVING_PROPERTY__ = isBusy;
+    return () => {
+      (window as any).__ADELINA_IS_SAVING_PROPERTY__ = false;
+    };
+  }, [isBusy]);
+
+  // Browser navigation guard: prompt before unloading tab or refreshing
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isBusy) {
+        e.preventDefault();
+        e.returnValue = 'Hay una carga o guardado en curso. Si salís de la página se cancelará la operación.';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isBusy]);
+
+  // Safe back handler for in-app navigation
+  const handleSafeBack = () => {
+    if (isBusy) {
+      const confirmed = window.confirm(
+        '⚠️ ¡Atención! Hay imágenes subiéndose o datos guardándose en el servidor.\n\nSi salís ahora se cancelará la carga. ¿Estás seguro de que querés salir?'
+      );
+      if (!confirmed) return;
+    }
+    onBack();
+  };
 
   // Load existing property data if editing
   useEffect(() => {
@@ -263,7 +302,8 @@ export const AdminPropertyEditPage: React.FC<AdminPropertyEditPageProps> = ({
       {/* Top Navigation */}
       <div className="flex items-center justify-between pb-4 border-b border-zinc-200">
         <button
-          onClick={onBack}
+          type="button"
+          onClick={handleSafeBack}
           className="inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-zinc-600 hover:text-adelina-dark transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -274,6 +314,21 @@ export const AdminPropertyEditPage: React.FC<AdminPropertyEditPageProps> = ({
           {isEditing ? 'Editar Inmueble' : 'Cargar Nueva Propiedad'}
         </h1>
       </div>
+
+      {/* Warning banner when upload or save is in progress */}
+      {isBusy && (
+        <div className="bg-amber-50 text-amber-900 p-4 rounded-2xl border border-amber-200 flex items-start gap-3 shadow-sm animate-pulse">
+          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="text-xs sm:text-sm">
+            <p className="font-bold">
+              {uploading ? `Subiendo fotos (${uploadProgress.percent}% completado)...` : 'Guardando publicación en la base de datos...'}
+            </p>
+            <p className="text-amber-800 text-[11px] sm:text-xs mt-0.5">
+              Por favor no cierres ni cambies de pantalla. Si salís ahora se cancelará el proceso.
+            </p>
+          </div>
+        </div>
+      )}
 
       {savedSuccess && (
         <div className="bg-emerald-50 text-emerald-800 p-4 rounded-2xl border border-emerald-200 flex items-center gap-3">
@@ -744,9 +799,8 @@ export const AdminPropertyEditPage: React.FC<AdminPropertyEditPageProps> = ({
         <div className="flex items-center justify-end gap-4 pt-4">
           <button
             type="button"
-            onClick={onBack}
-            disabled={uploading || isSaving}
-            className="bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-6 py-3 rounded-xl text-xs sm:text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleSafeBack}
+            className="bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-6 py-3 rounded-xl text-xs sm:text-sm font-medium transition-colors"
           >
             Cancelar
           </button>

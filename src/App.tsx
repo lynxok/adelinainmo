@@ -21,19 +21,109 @@ import { AdminTestimonialsPage } from './pages/admin/AdminTestimonialsPage';
 import { AdminLeadsPage } from './pages/admin/AdminLeadsPage';
 import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { XmlFeedPage } from './pages/admin/XmlFeedPage';
+type AppView = 'home' | 'catalog' | 'buy-sell' | 'detail' | 'colleague' | 'valuation' | 'admin' | 'about';
+
+interface RouteState {
+  view: AppView;
+  slug?: string;
+  filters?: PropertyFilter;
+}
+
+function parseRouteFromUrl(): RouteState {
+  const params = new URLSearchParams(window.location.search);
+  const pSlug = params.get('p');
+  const isColleague = params.get('colleague') === '1';
+  const viewParam = params.get('view');
+  const tipo = params.get('tipo');
+  const op = params.get('op') as 'sale' | 'rent' | null;
+
+  if (pSlug) {
+    if (isColleague) {
+      return { view: 'colleague', slug: pSlug };
+    }
+    return { view: 'detail', slug: pSlug };
+  }
+
+  if (viewParam === 'tasaciones' || viewParam === 'valuation') {
+    return { view: 'valuation' };
+  }
+  if (viewParam === 'sobre-mi' || viewParam === 'about') {
+    return { view: 'about' };
+  }
+  if (viewParam === 'admin') {
+    return { view: 'admin' };
+  }
+  if (viewParam === 'propiedades' || viewParam === 'catalog' || viewParam === 'buy-sell') {
+    const filters: PropertyFilter = {};
+    if (tipo) filters.type = tipo;
+    if (op === 'sale' || op === 'rent') filters.operation = op;
+    return { view: 'buy-sell', filters: Object.keys(filters).length > 0 ? filters : undefined };
+  }
+
+  return { view: 'home' };
+}
+
+function buildRouteUrl(view: AppView, slug?: string, filters?: PropertyFilter): string {
+  const pathname = window.location.pathname;
+  if (view === 'colleague' && slug) {
+    return `${pathname}?colleague=1&p=${encodeURIComponent(slug)}`;
+  }
+  if (view === 'detail' && slug) {
+    return `${pathname}?p=${encodeURIComponent(slug)}`;
+  }
+  if (view === 'buy-sell' || view === 'catalog') {
+    const params = new URLSearchParams();
+    params.set('view', 'propiedades');
+    if (filters?.type) params.set('tipo', filters.type);
+    if (filters?.operation) params.set('op', filters.operation);
+    return `${pathname}?${params.toString()}`;
+  }
+  if (view === 'valuation') {
+    return `${pathname}?view=tasaciones`;
+  }
+  if (view === 'about') {
+    return `${pathname}?view=sobre-mi`;
+  }
+  if (view === 'admin') {
+    return `${pathname}?view=admin`;
+  }
+  return pathname;
+}
 
 export function App() {
   const [properties, setProperties] = useState<Property[]>(() => propertyService.getProperties());
   const [leads, setLeads] = useState<Lead[]>(() => leadService.getLeads());
-  const [currentView, setCurrentView] = useState<'home' | 'catalog' | 'buy-sell' | 'detail' | 'colleague' | 'valuation' | 'admin' | 'about'>('home');
-  const [selectedPropertySlug, setSelectedPropertySlug] = useState<string>('');
-  const [catalogFilters, setCatalogFilters] = useState<PropertyFilter | undefined>(undefined);
+  const [currentView, setCurrentView] = useState<AppView>(() => parseRouteFromUrl().view);
+  const [selectedPropertySlug, setSelectedPropertySlug] = useState<string>(() => parseRouteFromUrl().slug || '');
+  const [catalogFilters, setCatalogFilters] = useState<PropertyFilter | undefined>(() => parseRouteFromUrl().filters);
 
   // Admin states & Auth
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(() => authService.getCurrentProfile());
   const [adminTab, setAdminTab] = useState<'dashboard' | 'properties' | 'property-new' | 'property-edit' | 'categories' | 'testimonials' | 'leads' | 'users' | 'xml-feed'>('dashboard');
   const [editingPropertyId, setEditingPropertyId] = useState<string | undefined>(undefined);
+
+  // Navigation with browser history synchronization
+  const navigate = (
+    view: AppView,
+    options?: { slug?: string; filters?: PropertyFilter; replace?: boolean }
+  ) => {
+    const targetView = view === 'catalog' ? 'buy-sell' : view;
+    const targetSlug = options?.slug || '';
+    const targetFilters = options?.filters;
+    const targetUrl = buildRouteUrl(targetView, targetSlug, targetFilters);
+
+    if (options?.replace) {
+      window.history.replaceState({ view: targetView, slug: targetSlug, filters: targetFilters }, '', targetUrl);
+    } else {
+      window.history.pushState({ view: targetView, slug: targetSlug, filters: targetFilters }, '', targetUrl);
+    }
+
+    setCurrentView(targetView);
+    setSelectedPropertySlug(targetSlug);
+    setCatalogFilters(targetFilters);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Load initial properties & leads
   const refreshData = async () => {
@@ -58,6 +148,25 @@ export function App() {
     window.addEventListener('adelina-properties-changed', refreshData);
     window.addEventListener('adelina-leads-changed', refreshData);
 
+    // Save initial state into browser history if not already set
+    const initialRoute = parseRouteFromUrl();
+    window.history.replaceState(
+      { view: initialRoute.view, slug: initialRoute.slug || '', filters: initialRoute.filters },
+      '',
+      window.location.href
+    );
+
+    // Handle browser back and forward buttons
+    const handlePopState = () => {
+      const route = parseRouteFromUrl();
+      setCurrentView(route.view);
+      setSelectedPropertySlug(route.slug || '');
+      setCatalogFilters(route.filters);
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
     // Check saved admin auth
     const savedAuth = localStorage.getItem('adelina_admin_auth');
     if (savedAuth === 'true') {
@@ -79,72 +188,60 @@ export function App() {
       });
     }
 
-    // Check URL parameters (e.g. ?colleague=1&p=slug or ?p=slug)
-    const urlParams = new URLSearchParams(window.location.search);
-    const pSlug = urlParams.get('p');
-    const isColleague = urlParams.get('colleague') === '1';
-
-    if (pSlug) {
-      setSelectedPropertySlug(pSlug);
-      if (isColleague) {
-        setCurrentView('colleague');
-      } else {
-        setCurrentView('detail');
-      }
-    }
-
     return () => {
       window.removeEventListener('adelina-properties-changed', refreshData);
       window.removeEventListener('adelina-leads-changed', refreshData);
+      window.removeEventListener('popstate', handlePopState);
     };
   }, []);
 
   // Navigation handlers
   const handleNavigate = (view: string, param?: string) => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
     if (view === 'home') {
-      setCurrentView('home');
-      setSelectedPropertySlug('');
+      navigate('home');
     } else if (view === 'buy-sell' || view === 'catalog') {
+      let filters: PropertyFilter | undefined = undefined;
       if (param?.startsWith('category:')) {
         const catSlug = param.replace('category:', '');
-        setCatalogFilters({ type: catSlug });
+        filters = { type: catSlug };
       } else if (param === 'operation:sale') {
-        setCatalogFilters({ operation: 'sale' });
+        filters = { operation: 'sale' };
       } else if (param === 'operation:rent') {
-        setCatalogFilters({ operation: 'rent' });
-      } else {
-        setCatalogFilters(undefined);
+        filters = { operation: 'rent' };
       }
-      setCurrentView('buy-sell');
+      navigate('buy-sell', { filters });
     } else if (view === 'valuation') {
-      setCurrentView('valuation');
+      navigate('valuation');
     } else if (view === 'about') {
-      setCurrentView('about');
+      navigate('about');
     } else if (view === 'admin') {
-      setCurrentView('admin');
+      navigate('admin');
     }
   };
 
   const handleSelectProperty = (slug: string) => {
-    setSelectedPropertySlug(slug);
-    setCurrentView('detail');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    navigate('detail', { slug });
   };
 
   const handleHeroSearch = (filters: { operation?: any; type?: any; location?: string }) => {
-    setCatalogFilters({
-      operation: filters.operation,
-      type: filters.type,
-      location: filters.location,
+    navigate('buy-sell', {
+      filters: {
+        operation: filters.operation,
+        type: filters.type,
+        location: filters.location,
+      },
     });
-    setCurrentView('buy-sell');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Admin Navigation with RBAC
   const handleAdminNavigateTab = (tab: string, param?: string) => {
+    if ((window as any).__ADELINA_IS_SAVING_PROPERTY__) {
+      const confirmed = window.confirm(
+        '⚠️ ¡Atención! Hay imágenes subiéndose o datos guardándose en el servidor.\n\nSi cambiás de pantalla ahora se cancelará la carga. ¿Estás seguro de que querés salir?'
+      );
+      if (!confirmed) return;
+    }
+
     if (userProfile?.role === 'corredor' && tab !== 'properties' && tab !== 'property-new' && tab !== 'property-edit') {
       setAdminTab('properties');
       return;
@@ -162,10 +259,26 @@ export function App() {
   };
 
   const handleAdminLogout = async () => {
+    if ((window as any).__ADELINA_IS_SAVING_PROPERTY__) {
+      const confirmed = window.confirm(
+        '⚠️ ¡Atención! Hay imágenes subiéndose o datos guardándose en el servidor.\n\nSi cerrás sesión ahora se cancelará la carga. ¿Estás seguro de que querés salir?'
+      );
+      if (!confirmed) return;
+    }
     await authService.logout();
     setIsAdminAuthenticated(false);
     setUserProfile(null);
     setCurrentView('home');
+  };
+
+  const handleAdminViewWeb = () => {
+    if ((window as any).__ADELINA_IS_SAVING_PROPERTY__) {
+      const confirmed = window.confirm(
+        '⚠️ ¡Atención! Hay imágenes subiéndose o datos guardándose en el servidor.\n\nSi vas al sitio web ahora se cancelará la carga. ¿Estás seguro de que querés salir?'
+      );
+      if (!confirmed) return;
+    }
+    handleNavigate('home');
   };
 
   // Resolve selected property for detail or colleague view
@@ -196,7 +309,7 @@ export function App() {
               setAdminTab('dashboard');
             }
           }}
-          onBackToWeb={() => setCurrentView('home')}
+          onBackToWeb={() => handleNavigate('home')}
         />
       );
     }
@@ -206,7 +319,7 @@ export function App() {
         currentTab={adminTab}
         onNavigateTab={handleAdminNavigateTab}
         onLogout={handleAdminLogout}
-        onViewWeb={() => setCurrentView('home')}
+        onViewWeb={handleAdminViewWeb}
         userProfile={userProfile}
       >
         {adminTab === 'dashboard' && userProfile?.role !== 'corredor' && (
@@ -214,7 +327,7 @@ export function App() {
             properties={properties}
             leads={leads}
             onNavigateTab={handleAdminNavigateTab}
-            onViewWeb={() => setCurrentView('home')}
+            onViewWeb={handleAdminViewWeb}
             userProfile={userProfile}
           />
         )}
@@ -287,7 +400,13 @@ export function App() {
         {currentView === 'detail' && activeProperty && (
           <PropertyDetailPage
             property={activeProperty}
-            onBack={() => setCurrentView('buy-sell')}
+            onBack={() => {
+              if (window.history.length > 1) {
+                window.history.back();
+              } else {
+                handleNavigate('buy-sell');
+              }
+            }}
             onNavigate={handleNavigate}
           />
         )}
