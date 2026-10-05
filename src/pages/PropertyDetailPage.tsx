@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Property } from '../types/property';
 import {
   Bed,
@@ -139,6 +139,38 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
   const handleNextImage = () => {
     setSelectedImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
+
+  // Keyboard and swipe support for lightbox
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) {
+        handleNextImage(); // Swiped left -> next
+      } else {
+        handlePrevImage(); // Swiped right -> prev
+      }
+    }
+    setTouchStartX(null);
+  };
+
+  // Keyboard navigation when Lightbox is open
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsLightboxOpen(false);
+      if (e.key === 'ArrowLeft') handlePrevImage();
+      if (e.key === 'ArrowRight') handleNextImage();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isLightboxOpen, images.length]);
 
   const handleSendInquiry = (e: React.FormEvent) => {
     e.preventDefault();
@@ -621,41 +653,78 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
 
       {/* 7. MODAL: LIGHTBOX FULLSCREEN IMAGES */}
       {isLightboxOpen && (
-        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 sm:p-8 animate-fadeIn">
-          <button
-            onClick={() => setIsLightboxOpen(false)}
-            className="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors z-50"
-          >
-            <X className="w-6 h-6" />
-          </button>
-
-          {/* Left Arrow */}
-          <button
-            onClick={handlePrevImage}
-            className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors z-50"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-
-          {/* Image */}
-          <div className="max-w-6xl max-h-[85vh] flex flex-col items-center justify-center">
-            <img
-              src={images[selectedImageIndex]}
-              alt={`${property.title} grande`}
-              className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl"
-            />
-            <span className="font-archivo text-white/70 text-sm mt-4">
-              Foto {selectedImageIndex + 1} de {images.length}
+        <div
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col items-center justify-between p-3 sm:p-6 animate-fadeIn select-none"
+          onClick={(e) => {
+            // Close if clicked on outer backdrop
+            if (e.target === e.currentTarget) setIsLightboxOpen(false);
+          }}
+        >
+          {/* Top Bar: Counter & Close Button */}
+          <div className="w-full flex items-center justify-between px-2 sm:px-4 py-2 text-white z-50">
+            <span className="font-archivo text-white/80 text-xs sm:text-sm font-medium tracking-wide">
+              {selectedImageIndex + 1} / {images.length}
             </span>
+            <button
+              onClick={() => setIsLightboxOpen(false)}
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white flex items-center justify-center transition-all"
+              aria-label="Cerrar vista completa"
+            >
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
           </div>
 
-          {/* Right Arrow */}
-          <button
-            onClick={handleNextImage}
-            className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors z-50"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
+          {/* Main Content Area */}
+          <div className="relative w-full flex-1 flex items-center justify-center min-h-0 px-2 sm:px-14">
+            {/* Left Arrow */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePrevImage();
+              }}
+              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/50 sm:bg-white/10 hover:bg-white/20 active:scale-90 text-white flex items-center justify-center transition-all z-40 backdrop-blur-sm border border-white/10 shadow-lg"
+              aria-label="Foto anterior"
+            >
+              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+
+            {/* Image Container with native object-contain and max bounds */}
+            <div
+              className="w-full h-full flex items-center justify-center p-1 sm:p-2 touch-pan-y"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setIsLightboxOpen(false);
+              }}
+            >
+              <img
+                key={images[selectedImageIndex]}
+                src={images[selectedImageIndex]}
+                alt={`${property.title} - Foto ${selectedImageIndex + 1}`}
+                className="max-w-full max-h-[75vh] sm:max-h-[82vh] w-auto h-auto object-contain rounded-xl sm:rounded-2xl shadow-2xl transition-all pointer-events-none select-none"
+                draggable={false}
+              />
+            </div>
+
+            {/* Right Arrow */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleNextImage();
+              }}
+              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/50 sm:bg-white/10 hover:bg-white/20 active:scale-90 text-white flex items-center justify-center transition-all z-40 backdrop-blur-sm border border-white/10 shadow-lg"
+              aria-label="Foto siguiente"
+            >
+              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+          </div>
+
+          {/* Bottom Title Bar & Thumbnails preview on desktop */}
+          <div className="w-full max-w-xl text-center py-2 px-4 z-50">
+            <p className="font-archivo text-white/90 text-xs sm:text-sm font-medium truncate">
+              {property.title}
+            </p>
+          </div>
         </div>
       )}
 
