@@ -98,8 +98,20 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
   // Instagram profile URL
   const instagramUrl = 'https://www.instagram.com/adelinalujan.propiedades/';
 
+  // Canonical property web URL (full website view)
+  const publicShareUrl = `${window.location.origin}/?p=${property.slug || property.id}`;
+
   // White label colleague share url
   const colleagueShareUrl = `${window.location.origin}/?colleague=1&p=${property.slug || property.id}`;
+
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [copiedPublicUrl, setCopiedPublicUrl] = useState(false);
+
+  const handleCopyPublicUrl = () => {
+    navigator.clipboard.writeText(publicShareUrl);
+    setCopiedPublicUrl(true);
+    setTimeout(() => setCopiedPublicUrl(false), 2500);
+  };
 
   const handleCopyColleagueUrl = () => {
     navigator.clipboard.writeText(colleagueShareUrl);
@@ -114,21 +126,20 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
     setTimeout(() => setCopiedColleagueText(false), 2500);
   };
 
-  const handleShareProperty = async () => {
+  const handleOpenShareModal = () => {
+    setShareModalOpen(true);
+  };
+
+  const handleNativeShare = async () => {
     if (navigator.share) {
       try {
+        // Enviar únicamente url limpia para que el botón "Copiar" de iOS no agregue texto
         await navigator.share({
-          title: property.title,
-          text: `Mirá esta propiedad en Adelina Luján: ${property.title}`,
-          url: window.location.href,
+          url: publicShareUrl,
         });
       } catch (err) {
-        // user cancelled or share failed
+        // cancelado
       }
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2500);
     }
   };
 
@@ -219,12 +230,12 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
           {/* Right Action Buttons */}
           <div className="flex items-center gap-2">
             <button
-              onClick={handleShareProperty}
+              onClick={handleOpenShareModal}
               className="inline-flex items-center gap-2 text-xs font-archivo font-medium tracking-wide uppercase px-4 py-2.5 rounded-full bg-white border border-zinc-300/80 text-[#505050] hover:text-black hover:bg-zinc-100 transition-colors shadow-sm"
               title="Compartir propiedad"
             >
               <Share2 className="w-3.5 h-3.5 text-[#808080]" />
-              <span>{copiedLink ? '¡Enlace copiado!' : 'Compartir'}</span>
+              <span>Compartir</span>
             </button>
 
             <button
@@ -823,7 +834,114 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
         </div>
       )}
 
-      {/* 9. MODAL: FICHA COLEGA (MARCA BLANCA) */}
+      {/* 9. MODAL: COMPARTIR PROPIEDAD (WEB / REDES) */}
+      {shareModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white rounded-[25px] max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-zinc-200 space-y-6">
+            <div className="flex items-center justify-between pb-4 border-b border-zinc-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-zinc-100 flex items-center justify-center text-zinc-800">
+                  <Share2 className="w-4 h-4" />
+                </div>
+                <h3 className="font-archivo font-semibold text-lg text-[#303030]">
+                  Compartir Propiedad
+                </h3>
+              </div>
+              <button
+                onClick={() => setShareModalOpen(false)}
+                className="text-zinc-400 hover:text-black p-1 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="font-archivo text-xs sm:text-sm text-zinc-600 font-light leading-relaxed">
+              Compartí esta propiedad en tus redes o con tus clientes. Quien ingrese podrá ver las fotos, el precio y <strong>navegar toda la web de Adelina</strong>.
+            </p>
+
+            <div className="space-y-4">
+              {/* Opción 1: Enlace Web directo para Instagram Stories */}
+              <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-zinc-700 uppercase tracking-wider block">
+                    Enlace Web para Instagram / Redes
+                  </span>
+                  <span className="text-[10px] text-zinc-400 font-medium">URL limpia</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={publicShareUrl}
+                    className="flex-1 bg-white border border-zinc-300 rounded-xl px-3 py-2 text-xs text-zinc-700 font-mono select-all"
+                  />
+                  <button
+                    onClick={handleCopyPublicUrl}
+                    className="bg-[#303030] hover:bg-black text-white px-4 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 shrink-0 transition-colors"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>{copiedPublicUrl ? '¡Copiado!' : 'Copiar'}</span>
+                  </button>
+                </div>
+                <p className="text-[11px] text-zinc-500 font-light pt-1">
+                  💡 Pegá este enlace directo en el <strong>sticker de enlace</strong> de tus Historias de Instagram sin errores.
+                </p>
+              </div>
+
+              {/* Opción 2: WhatsApp a clientes */}
+              <div className="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200 space-y-2">
+                <span className="text-[11px] font-semibold text-emerald-800 uppercase tracking-wider block">
+                  Enviar a un Cliente por WhatsApp
+                </span>
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(`¡Hola! Te comparto esta propiedad de Adelina Luján:\n${property.title}\n\n${publicShareUrl}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-xs font-medium flex items-center justify-center gap-2 shadow-sm transition-all"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Compartir por WhatsApp</span>
+                </a>
+              </div>
+
+              {/* Opción 3: Compartir nativo del celular (si existe) */}
+              {typeof navigator !== 'undefined' && 'share' in navigator && (
+                <button
+                  type="button"
+                  onClick={handleNativeShare}
+                  className="w-full py-2.5 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-xs font-medium text-zinc-700 flex items-center justify-center gap-2 transition-colors"
+                >
+                  <Share2 className="w-3.5 h-3.5 text-zinc-500" />
+                  <span>Más opciones de compartir del celular</span>
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-zinc-100">
+              <button
+                type="button"
+                onClick={() => {
+                  setShareModalOpen(false);
+                  setColleagueModalOpen(true);
+                }}
+                className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-black font-medium"
+              >
+                <span>¿Para colegas? Ver Ficha Colega</span>
+                <ExternalLink className="w-3 h-3" />
+              </button>
+
+              <button
+                onClick={() => setShareModalOpen(false)}
+                className="bg-zinc-100 hover:bg-zinc-200 text-zinc-800 text-xs font-medium px-5 py-2 rounded-full transition-colors"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 10. MODAL: FICHA COLEGA (MARCA BLANCA) */}
       {colleagueModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-white rounded-[25px] max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-zinc-200 space-y-6">
