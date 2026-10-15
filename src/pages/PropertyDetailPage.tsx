@@ -320,6 +320,12 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                 alt="Vista previa siguiente"
                 className="w-full h-full object-cover cursor-pointer opacity-90 hover:opacity-100 transition-opacity"
                 onClick={handleNextImage}
+                onError={(e) => {
+                  const fallback = defaultFigmaImages[(selectedImageIndex + 1) % defaultFigmaImages.length];
+                  if (e.currentTarget.src !== fallback) {
+                    e.currentTarget.src = fallback;
+                  }
+                }}
               />
               <div className="absolute inset-0 bg-black/20 hover:bg-transparent transition-colors pointer-events-none" />
               <button
