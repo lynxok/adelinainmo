@@ -204,8 +204,13 @@ export const notifyLeadsChanged = () => {
 };
 
 // ==========================================
-// STORAGE SERVICE: SUPABASE STORAGE UPLOADER
+// STORAGE SERVICE: HOSTINGER & SUPABASE UPLOADER
 // ==========================================
+const HOSTINGER_UPLOAD_URL = typeof window !== 'undefined' 
+  ? `${window.location.origin}/upload.php`
+  : 'https://adelinainmo.lnx.com.ar/upload.php';
+const HOSTINGER_UPLOAD_KEY = 'adelina_inmo_secret_upload_key_2026';
+
 export const uploadImageToSupabase = async (
   file: File,
   folder = 'properties'
@@ -213,10 +218,35 @@ export const uploadImageToSupabase = async (
   try {
     const { file: webpFile, dataUrl } = await compressImageToWebP(file);
 
+    // 1. Priorizar subida directa a Hostinger (evita saturar cuota egress de Supabase)
+    try {
+      const formData = new FormData();
+      formData.append('file', webpFile);
+      formData.append('folder', folder);
+
+      const res = await fetch(HOSTINGER_UPLOAD_URL, {
+        method: 'POST',
+        headers: {
+          'X-Upload-Key': HOSTINGER_UPLOAD_KEY,
+        },
+        body: formData,
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.url) {
+          return json.url;
+        }
+      }
+    } catch (hostingerErr) {
+      console.warn('Hostinger upload fallback, trying Supabase Storage:', hostingerErr);
+    }
+
     if (!isLiveSupabase) {
       return dataUrl;
     }
 
+    // 2. Fallback secundario a Supabase Storage
     const sanitizedName = file.name
       .toLowerCase()
       .replace(/\.[^/.]+$/, '')
