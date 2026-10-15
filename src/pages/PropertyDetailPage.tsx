@@ -281,10 +281,16 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
             {/* Primary Main Image */}
             <div className="lg:col-span-8 relative aspect-[16/10] rounded-[25px] overflow-hidden bg-zinc-800 shadow-md border border-zinc-200 group">
               <img
-                src={images[selectedImageIndex]}
+                src={images[selectedImageIndex] || defaultFigmaImages[0]}
                 alt={`${property.title} - Imagen ${selectedImageIndex + 1}`}
                 className="w-full h-full object-cover cursor-pointer transition-transform duration-700 group-hover:scale-105"
                 onClick={() => setIsLightboxOpen(true)}
+                onError={(e) => {
+                  const fallback = defaultFigmaImages[selectedImageIndex % defaultFigmaImages.length];
+                  if (e.currentTarget.src !== fallback) {
+                    e.currentTarget.src = fallback;
+                  }
+                }}
               />
 
               {/* Status / Category Badges */}
