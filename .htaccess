@@ -4,7 +4,10 @@ DirectoryIndex dist/index.html index.html
   RewriteEngine On
   RewriteBase /
 
-  # 1. If requested path exists inside dist/, serve it
+  # 1. Serve upload.php and api.php directly from root so they share /uploads
+  RewriteRule ^(upload\.php|api\.php|seed_db\.json)$ $1 [L]
+
+  # 2. If requested path exists inside dist/, serve it
   RewriteCond %{DOCUMENT_ROOT}/dist/$1 -f
   RewriteRule ^(.*)$ dist/$1 [L]
 

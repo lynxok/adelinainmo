@@ -69,11 +69,20 @@ if (!is_dir($uploadDir)) {
 }
 
 // 5. Nombre único y seguro
-$cleanBaseName = preg_replace('/[^a-zA-Z0-9_-]/', '', pathinfo($file['name'], PATHINFO_FILENAME));
-if (empty($cleanBaseName)) {
-    $cleanBaseName = 'prop';
+$customName = isset($_POST['custom_name']) ? trim($_POST['custom_name']) : '';
+if (!empty($customName)) {
+    // Sanitizar custom_name manteniendo solo caracteres seguros y extensión
+    $filename = preg_replace('/[^a-zA-Z0-9_\-\.]/', '', $customName);
+    if (!preg_match('/\.(jpg|jpeg|png|webp|gif)$/i', $filename)) {
+        $filename .= '.' . $ext;
+    }
+} else {
+    $cleanBaseName = preg_replace('/[^a-zA-Z0-9_-]/', '', pathinfo($file['name'], PATHINFO_FILENAME));
+    if (empty($cleanBaseName)) {
+        $cleanBaseName = 'prop';
+    }
+    $filename = $cleanBaseName . '-' . time() . '-' . bin2hex(random_bytes(4)) . '.' . $ext;
 }
-$filename = $cleanBaseName . '-' . time() . '-' . bin2hex(random_bytes(4)) . '.' . $ext;
 $targetPath = $uploadDir . $filename;
 
 if (!move_uploaded_file($file['tmp_name'], $targetPath)) {

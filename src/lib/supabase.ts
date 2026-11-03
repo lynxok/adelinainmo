@@ -1,182 +1,61 @@
-import { createClient } from '@supabase/supabase-js';
 import { Property, Lead, PropertyCategory, UserProfile, UserRole } from '../types/property';
 import { Testimonial } from '../types/testimonial';
 import { compressImageToWebP } from './imageCompressor';
+import seedDbRaw from './seed_db.json';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://mock-supabase-adelina.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'mock-anon-key';
+// =========================================================================
+// HOSTINGER NATIVE DATABASE & STORAGE CONFIG (0% SUPABASE DEPENDENCY)
+// =========================================================================
+const HOSTINGER_ORIGIN = typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+  ? window.location.origin
+  : 'https://adelinainmo.lnx.com.ar';
 
-export const isLiveSupabase = Boolean(
-  import.meta.env.VITE_SUPABASE_URL && 
-  import.meta.env.VITE_SUPABASE_URL !== 'https://mock-supabase-adelina.supabase.co'
-);
+const HOSTINGER_UPLOAD_URL = `${HOSTINGER_ORIGIN}/upload.php`;
+const HOSTINGER_API_URL = `${HOSTINGER_ORIGIN}/api.php`;
+const HOSTINGER_SECRET_KEY = 'adelina_inmo_secret_upload_key_2026';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const isLiveSupabase = true;
+export const supabase = null as any;
 
-const safeExecute = async (operation: PromiseLike<any>) => {
-  try {
-    const res = await operation;
-    if (res && typeof res === 'object' && 'error' in res && res.error) {
-      console.error('Supabase query error:', res.error);
-    }
-    return res;
-  } catch (err) {
-    console.error('Supabase execution error:', err);
-  }
-};
-
-// ==========================================
-// SEED DATA DIRECTLY FROM FIGMA ASSETS
-// ==========================================
-const INITIAL_PROPERTIES: Property[] = [
-  {
-    id: 'prop-1',
-    title: 'Casa en Barrio Privado',
-    slug: 'casa-en-barrio-privado-parana',
-    description: 'Excelente propiedad de diseño contemporáneo ubicada en exclusivo barrio privado de Paraná. Cuenta con amplios ambientes integrados, cocina gourmet con isla, galería techada con asador, piscina con solárium y jardín parquizado. Terminaciones de primera categoría con aberturas DVH y calefacción central.',
-    operation_type: 'sale',
-    property_type: 'casas',
-    price_usd: 185000,
-    currency: 'USD',
-    location_city: 'Paraná',
-    location_neighborhood: 'Barrio Privado',
-    address_approx: 'Zona Acceso Norte, Barrio Privado',
-    bedrooms: 3,
-    bathrooms: 3,
-    garages: 2,
-    covered_area_sqm: 220,
-    total_area_sqm: 650,
-    amenities: ['Piscina', 'Quincho / Asador', 'Seguridad 24hs', 'Cochera doble', 'Calefacción central', 'Jardín parquizado', 'Vestidor en suite'],
-    images: [
-      '/assets/property-house-private.jpg',
-      '/assets/chic-living.jpg',
-      '/assets/hero-living.jpg'
-    ],
-    featured_image: '/assets/property-house-private.jpg',
-    is_featured: true,
-    status: 'available',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 'prop-2',
-    title: 'Departamento Centro con Vista',
-    slug: 'departamento-centro-parana',
-    description: 'Impecable departamento de categoría en pleno microcentro de Paraná. Luminoso living comedor con balcón aterrazado y vistas abiertas a la ciudad. Dos dormitorios (principal en suite con vestidor), cocina independiente equipada y cochera cubierta en subsuelo.',
-    operation_type: 'sale',
-    property_type: 'departamentos',
-    price_usd: 120000,
-    currency: 'USD',
-    location_city: 'Paraná',
-    location_neighborhood: 'Centro',
-    address_approx: 'Zona Casa de Gobierno / Plaza 1° de Mayo',
-    bedrooms: 2,
-    bathrooms: 2,
-    garages: 1,
-    covered_area_sqm: 88,
-    total_area_sqm: 98,
-    amenities: ['Balcón aterrazado', 'Cochera cubierta', 'Ascensor', 'Seguridad por cámara', 'SUM con parrilla', 'Placares e interiores completos'],
-    images: [
-      '/assets/property-dept-center.jpg',
-      '/assets/hero-living.jpg',
-      '/assets/chic-living.jpg'
-    ],
-    featured_image: '/assets/property-dept-center.jpg',
-    is_featured: true,
-    status: 'available',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 'prop-3',
-    title: 'Terreno / Lote Residencial',
-    slug: 'terreno-lote-colonia-avellaneda',
-    description: 'Gran lote residencial con entorno natural consolidado y excelente orientación solar. Servicios subterráneos de agua corriente, tendido eléctrico y alumbrado público. Ideal para desarrollo familiar o inversión con alto potencial de revalorización.',
-    operation_type: 'sale',
-    property_type: 'lotes',
-    price_usd: 38000,
-    currency: 'USD',
-    location_city: 'Colonia Avellaneda',
-    location_neighborhood: 'Zona Residencial',
-    address_approx: 'A metros de acceso principal, Colonia Avellaneda',
-    bedrooms: 0,
-    bathrooms: 0,
-    garages: 0,
-    covered_area_sqm: 0,
-    total_area_sqm: 540,
-    amenities: ['Servicios de agua y luz', 'Alumbrado público', 'Escrituración inmediata', 'Calle pavimentada', 'Entorno consolidado'],
-    images: [
-      '/assets/property-land-lot.jpg',
-      '/assets/office-sign.jpg'
-    ],
-    featured_image: '/assets/property-land-lot.jpg',
-    is_featured: true,
-    status: 'available',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 'prop-4',
-    title: 'Casa Quinta con Parque y Piscina',
-    slug: 'casa-quinta-parque-piscina',
-    description: 'Propiedad ideal para descanso o vivienda permanente. Amplia galería perimetral, quincho cerrado para 30 personas con asador, horno a leña y pileta de 10x4 metros. Arboleda añeja y parque totalmente cercado.',
-    operation_type: 'sale',
-    property_type: 'quintas',
-    price_usd: 145000,
-    currency: 'USD',
-    location_city: 'Paraná',
-    location_neighborhood: 'Acceso Este',
-    address_approx: 'Zona Parque Industrial / Acceso Este',
-    bedrooms: 3,
-    bathrooms: 2,
-    garages: 3,
-    covered_area_sqm: 180,
-    total_area_sqm: 1200,
-    amenities: ['Gran piscina', 'Quincho cerrado', 'Horno a leña', 'Arboleda añeja', 'Portón automatizado'],
-    images: [
-      '/assets/chic-living.jpg',
-      '/assets/property-house-private.jpg'
-    ],
-    featured_image: '/assets/chic-living.jpg',
-    is_featured: false,
-    status: 'available',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 'prop-5',
-    title: 'Cochera Cubierta en Microcentro',
-    slug: 'cochera-cubierta-microcentro-parana',
-    description: 'Cochera fija cubierta con portón automatizado a control remoto y cámaras de seguridad 24 hs en pleno microcentro de Paraná. Excelente maniobrabilidad.',
-    operation_type: 'sale',
-    property_type: 'cocheras',
-    price_usd: 12000,
-    currency: 'USD',
-    location_city: 'Paraná',
-    location_neighborhood: 'Centro',
-    address_approx: 'Zona Microcentro / Peatonal San Martín',
-    bedrooms: 0,
-    bathrooms: 0,
-    garages: 1,
-    covered_area_sqm: 14,
-    total_area_sqm: 14,
-    amenities: ['Portón automatizado', 'Seguridad 24hs', 'Fácil acceso'],
-    images: [
-      '/assets/hero-living.jpg',
-      '/assets/property-dept-center.jpg'
-    ],
-    featured_image: '/assets/hero-living.jpg',
-    is_featured: false,
-    status: 'available',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  }
-];
+const SEED_PROPERTIES: Property[] = (seedDbRaw.properties || []) as Property[];
+const SEED_CATEGORIES: PropertyCategory[] = (seedDbRaw.categories || []) as PropertyCategory[];
+const SEED_TESTIMONIALS: Testimonial[] = (seedDbRaw.testimonials || []) as Testimonial[];
+const SEED_PROFILES: UserProfile[] = (seedDbRaw.profiles || []) as UserProfile[];
 
 const STORAGE_PROPERTIES_KEY = 'adelina_properties_data_v2';
 const STORAGE_LEADS_KEY = 'adelina_leads_data_v1';
 const STORAGE_CATEGORIES_KEY = 'adelina_categories_data_v1';
 const STORAGE_TESTIMONIALS_KEY = 'adelina_testimonials_data';
+
+// Helper for Hostinger JSON API calls
+async function callHostingerApi(
+  method: 'GET' | 'POST',
+  paramsOrBody: Record<string, any>
+): Promise<any> {
+  if (method === 'GET') {
+    const qs = new URLSearchParams(paramsOrBody as Record<string, string>).toString();
+    const res = await fetch(`${HOSTINGER_API_URL}?${qs}`, {
+      method: 'GET',
+      cache: 'no-store',
+    });
+    if (!res.ok) throw new Error(`API GET error: ${res.status}`);
+    return res.json();
+  } else {
+    const res = await fetch(HOSTINGER_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Upload-Key': HOSTINGER_SECRET_KEY,
+      },
+      body: JSON.stringify(paramsOrBody),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data?.error || `API POST error: ${res.status}`);
+    }
+    return data;
+  }
+}
 
 // Custom Event dispatchers for reactive synchronization
 export const notifyPropertiesChanged = () => {
@@ -204,13 +83,8 @@ export const notifyLeadsChanged = () => {
 };
 
 // ==========================================
-// STORAGE SERVICE: HOSTINGER & SUPABASE UPLOADER
+// STORAGE SERVICE: HOSTINGER DIRECT UPLOADER
 // ==========================================
-const HOSTINGER_UPLOAD_URL = typeof window !== 'undefined' 
-  ? `${window.location.origin}/upload.php`
-  : 'https://adelinainmo.lnx.com.ar/upload.php';
-const HOSTINGER_UPLOAD_KEY = 'adelina_inmo_secret_upload_key_2026';
-
 export const uploadImageToSupabase = async (
   file: File,
   folder = 'properties'
@@ -218,7 +92,6 @@ export const uploadImageToSupabase = async (
   try {
     const { file: webpFile, dataUrl } = await compressImageToWebP(file);
 
-    // 1. Priorizar subida directa a Hostinger (evita saturar cuota egress de Supabase)
     try {
       const formData = new FormData();
       formData.append('file', webpFile);
@@ -227,7 +100,7 @@ export const uploadImageToSupabase = async (
       const res = await fetch(HOSTINGER_UPLOAD_URL, {
         method: 'POST',
         headers: {
-          'X-Upload-Key': HOSTINGER_UPLOAD_KEY,
+          'X-Upload-Key': HOSTINGER_SECRET_KEY,
         },
         body: formData,
       });
@@ -239,39 +112,10 @@ export const uploadImageToSupabase = async (
         }
       }
     } catch (hostingerErr) {
-      console.warn('Hostinger upload fallback, trying Supabase Storage:', hostingerErr);
+      console.warn('Hostinger image upload fallback to compressed WebP dataUrl:', hostingerErr);
     }
 
-    if (!isLiveSupabase) {
-      return dataUrl;
-    }
-
-    // 2. Fallback secundario a Supabase Storage
-    const sanitizedName = file.name
-      .toLowerCase()
-      .replace(/\.[^/.]+$/, '')
-      .replace(/[^a-z0-9]/g, '-')
-      .replace(/-+/g, '-');
-    const path = `${folder}/${Date.now()}-${sanitizedName}.webp`;
-
-    const { data, error } = await supabase.storage
-      .from('adelina-media')
-      .upload(path, webpFile, {
-        contentType: 'image/webp',
-        cacheControl: '31536000',
-        upsert: true,
-      });
-
-    if (error) {
-      console.warn('Storage upload error, falling back to WebP dataUrl:', error);
-      return dataUrl;
-    }
-
-    const { data: publicUrlData } = supabase.storage
-      .from('adelina-media')
-      .getPublicUrl(data.path);
-
-    return publicUrlData.publicUrl;
+    return dataUrl;
   } catch (err) {
     console.error('Error in uploadImageToSupabase:', err);
     const { dataUrl } = await compressImageToWebP(file);
@@ -280,51 +124,69 @@ export const uploadImageToSupabase = async (
 };
 
 // ==========================================
-// PROPERTIES SERVICE (Supabase + Local Cache)
+// PROPERTIES SERVICE (Hostinger API + Local Cache)
 // ==========================================
+const LEGACY_DEMO_IDS = ['prop-1', 'prop-2', 'prop-3', 'prop-4', 'prop-5'];
+
 export const propertyService = {
   getProperties(): Property[] {
     const raw = localStorage.getItem(STORAGE_PROPERTIES_KEY);
     if (!raw) {
-      if (isLiveSupabase) {
-        this.fetchProperties();
-      }
-      return [];
+      localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(SEED_PROPERTIES));
+      return SEED_PROPERTIES;
     }
     try {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        // Discard any legacy demo mock items (prop-1, prop-2, etc.)
-        const realItems = parsed.filter(p => !['prop-1', 'prop-2', 'prop-3', 'prop-4', 'prop-5'].includes(p.id));
-        return realItems;
+        const realItems = parsed.filter(p => p && p.id && !LEGACY_DEMO_IDS.includes(p.id));
+        if (realItems.length > 0) {
+          return realItems;
+        }
       }
-      return [];
+      localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(SEED_PROPERTIES));
+      return SEED_PROPERTIES;
     } catch {
-      return [];
+      return SEED_PROPERTIES;
     }
   },
 
   async fetchProperties(): Promise<Property[]> {
-    if (!isLiveSupabase) return this.getProperties();
     try {
-      const { data, error } = await supabase
-        .from('properties')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const localItems = this.getProperties();
+      const json = await callHostingerApi('GET', { table: 'properties' });
+      const serverData: Property[] = Array.isArray(json?.data) ? json.data : [];
 
-      if (error) {
-        console.error('Error fetching properties from Supabase:', error);
-        return this.getProperties();
-      }
+      if (serverData.length > 0) {
+        const serverIds = new Set(serverData.map(p => p.id));
+        // Auto-rescue any property saved locally in the browser that wasn't on the server yet
+        const unsyncedLocal = localItems.filter(
+          p => p.id && !LEGACY_DEMO_IDS.includes(p.id) && !serverIds.has(p.id)
+        );
 
-      if (data && data.length > 0) {
-        localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(data));
+        if (unsyncedLocal.length > 0) {
+          try {
+            await callHostingerApi('POST', {
+              action: 'bulk_upsert',
+              table: 'properties',
+              items: unsyncedLocal,
+            });
+          } catch (syncErr) {
+            console.warn('Could not bulk sync local properties:', syncErr);
+          }
+        }
+
+        const merged = [...unsyncedLocal, ...serverData].sort(
+          (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+        );
+
+        localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(merged));
         notifyPropertiesChanged();
-        return data as Property[];
+        return merged;
       }
-      return this.getProperties();
+
+      return localItems;
     } catch (err) {
-      console.error('Unexpected error fetching properties:', err);
+      console.warn('Using cached/seed properties (API unreachable):', err);
       return this.getProperties();
     }
   },
@@ -341,7 +203,6 @@ export const propertyService = {
     let targetProperty: Property;
 
     if (property.id) {
-      // Update
       const index = properties.findIndex(p => p.id === property.id);
       if (index >= 0) {
         targetProperty = {
@@ -361,8 +222,14 @@ export const propertyService = {
         properties.unshift(targetProperty);
       }
     } else {
-      // Create New
-      const generatedSlug = property.slug || property.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Math.floor(Math.random() * 1000);
+      const generatedSlug =
+        property.slug ||
+        property.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '') +
+          '-' +
+          Math.floor(Math.random() * 1000);
       targetProperty = {
         ...property,
         id: 'prop-' + Date.now(),
@@ -373,17 +240,20 @@ export const propertyService = {
       properties.unshift(targetProperty);
     }
 
-    // Sync with Supabase first if online
-    if (isLiveSupabase) {
-      const { error } = await supabase.from('properties').upsert(targetProperty);
-      if (error) {
-        console.error('Error saving property to Supabase:', error);
-        throw new Error(error.message || 'Error al guardar la propiedad en la base de datos');
-      }
-    }
-
+    // Always persist in localStorage immediately so work is never lost
     localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(properties));
     notifyPropertiesChanged();
+
+    // Persist on Hostinger API
+    try {
+      await callHostingerApi('POST', {
+        action: 'upsert',
+        table: 'properties',
+        item: targetProperty,
+      });
+    } catch (err) {
+      console.error('Error syncing property to Hostinger API (saved locally):', err);
+    }
 
     return targetProperty;
   },
@@ -394,9 +264,11 @@ export const propertyService = {
     localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(filtered));
     notifyPropertiesChanged();
 
-    if (isLiveSupabase) {
-      safeExecute(supabase.from('properties').delete().eq('id', id));
-    }
+    callHostingerApi('POST', {
+      action: 'delete',
+      table: 'properties',
+      id,
+    }).catch(err => console.error('Error deleting property on Hostinger API:', err));
 
     return true;
   },
@@ -410,14 +282,12 @@ export const propertyService = {
       localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(properties));
       notifyPropertiesChanged();
 
-      if (isLiveSupabase) {
-        safeExecute(
-          supabase
-            .from('properties')
-            .update({ is_featured: p.is_featured, updated_at: p.updated_at })
-            .eq('id', id)
-        );
-      }
+      callHostingerApi('POST', {
+        action: 'upsert',
+        table: 'properties',
+        item: p,
+      }).catch(err => console.error('Error toggling featured on Hostinger API:', err));
+
       return true;
     }
     return false;
@@ -432,14 +302,12 @@ export const propertyService = {
       localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(properties));
       notifyPropertiesChanged();
 
-      if (isLiveSupabase) {
-        safeExecute(
-          supabase
-            .from('properties')
-            .update({ status: p.status, updated_at: p.updated_at })
-            .eq('id', id)
-        );
-      }
+      callHostingerApi('POST', {
+        action: 'upsert',
+        table: 'properties',
+        item: p,
+      }).catch(err => console.error('Error updating status on Hostinger API:', err));
+
       return true;
     }
     return false;
@@ -447,17 +315,13 @@ export const propertyService = {
 };
 
 // ==========================================
-// LEADS SERVICE (Supabase + Local Cache)
+// LEADS SERVICE (Hostinger API + Local Cache)
 // ==========================================
 export const leadService = {
   getLeads(): Lead[] {
     const raw = localStorage.getItem(STORAGE_LEADS_KEY);
     if (!raw) {
-      if (isLiveSupabase) {
-        localStorage.setItem(STORAGE_LEADS_KEY, JSON.stringify([]));
-        this.fetchLeads();
-        return [];
-      }
+      localStorage.setItem(STORAGE_LEADS_KEY, JSON.stringify([]));
       return [];
     }
     try {
@@ -468,25 +332,15 @@ export const leadService = {
   },
 
   async fetchLeads(): Promise<Lead[]> {
-    if (!isLiveSupabase) return this.getLeads();
     try {
-      const { data, error } = await supabase
-        .from('leads')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching leads from Supabase:', error);
-        return this.getLeads();
-      }
-
-      if (data) {
-        localStorage.setItem(STORAGE_LEADS_KEY, JSON.stringify(data));
-        return data as Lead[];
+      const json = await callHostingerApi('GET', { table: 'leads' });
+      if (Array.isArray(json?.data)) {
+        localStorage.setItem(STORAGE_LEADS_KEY, JSON.stringify(json.data));
+        notifyLeadsChanged();
+        return json.data as Lead[];
       }
       return this.getLeads();
-    } catch (err) {
-      console.error('Unexpected error fetching leads:', err);
+    } catch {
       return this.getLeads();
     }
   },
@@ -503,9 +357,10 @@ export const leadService = {
     localStorage.setItem(STORAGE_LEADS_KEY, JSON.stringify(leads));
     notifyLeadsChanged();
 
-    if (isLiveSupabase) {
-      safeExecute(supabase.from('leads').insert(newLead));
-    }
+    callHostingerApi('POST', {
+      action: 'create_lead',
+      item: newLead,
+    }).catch(err => console.error('Error saving lead on Hostinger API:', err));
 
     return newLead;
   },
@@ -518,9 +373,11 @@ export const leadService = {
       localStorage.setItem(STORAGE_LEADS_KEY, JSON.stringify(leads));
       notifyLeadsChanged();
 
-      if (isLiveSupabase) {
-        safeExecute(supabase.from('leads').update({ status }).eq('id', id));
-      }
+      callHostingerApi('POST', {
+        action: 'upsert',
+        table: 'leads',
+        item: l,
+      }).catch(err => console.error('Error updating lead on Hostinger API:', err));
     }
   },
 
@@ -530,9 +387,11 @@ export const leadService = {
     localStorage.setItem(STORAGE_LEADS_KEY, JSON.stringify(filtered));
     notifyLeadsChanged();
 
-    if (isLiveSupabase) {
-      safeExecute(supabase.from('leads').delete().eq('id', id));
-    }
+    callHostingerApi('POST', {
+      action: 'delete',
+      table: 'leads',
+      id,
+    }).catch(err => console.error('Error deleting lead on Hostinger API:', err));
 
     return true;
   }
@@ -541,22 +400,22 @@ export const leadService = {
 // ==========================================
 // CATEGORIES SERVICE & HELPERS
 // ==========================================
-export const INITIAL_CATEGORIES: PropertyCategory[] = [
-  { id: 'cat-casas', name: 'Casas', slug: 'casas', description: 'Casas y residencias en zonas urbanas y barrios cerrados', order: 1 },
-  { id: 'cat-deptos', name: 'Departamentos', slug: 'departamentos', description: 'Departamentos de categoría céntricos y residenciales', order: 2 },
-  { id: 'cat-lotes', name: 'Lotes', slug: 'lotes', description: 'Terrenos, lotes en loteos y desarrollos', order: 3 },
-  { id: 'cat-cocheras', name: 'Cocheras', slug: 'cocheras', description: 'Cocheras y espacios de guardado cubiertos', order: 4 },
-  { id: 'cat-quintas', name: 'Quintas', slug: 'quintas', description: 'Casas quintas de fin de semana y chacras con parque', order: 5 },
-];
+export const INITIAL_CATEGORIES: PropertyCategory[] =
+  SEED_CATEGORIES.length > 0
+    ? SEED_CATEGORIES
+    : [
+        { id: 'cat-casas', name: 'Casas', slug: 'casas', description: 'Casas y residencias en zonas urbanas y barrios cerrados', order: 1 },
+        { id: 'cat-deptos', name: 'Departamentos', slug: 'departamentos', description: 'Departamentos de categoría céntricos y residenciales', order: 2 },
+        { id: 'cat-lotes', name: 'Lotes', slug: 'lotes', description: 'Terrenos, lotes en loteos y desarrollos', order: 3 },
+        { id: 'cat-cocheras', name: 'Cocheras', slug: 'cocheras', description: 'Cocheras y espacios de guardado cubiertos', order: 4 },
+        { id: 'cat-quintas', name: 'Quintas', slug: 'quintas', description: 'Casas quintas de fin de semana y chacras con parque', order: 5 },
+      ];
 
 export const categoryService = {
   getCategories(): PropertyCategory[] {
     const raw = localStorage.getItem(STORAGE_CATEGORIES_KEY);
     if (!raw) {
       localStorage.setItem(STORAGE_CATEGORIES_KEY, JSON.stringify(INITIAL_CATEGORIES));
-      if (isLiveSupabase) {
-        this.fetchCategories();
-      }
       return INITIAL_CATEGORIES;
     }
     try {
@@ -572,25 +431,16 @@ export const categoryService = {
   },
 
   async fetchCategories(): Promise<PropertyCategory[]> {
-    if (!isLiveSupabase) return this.getCategories();
     try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('order', { ascending: true });
-
-      if (error) {
-        console.error('Error fetching categories from Supabase:', error);
-        return this.getCategories();
-      }
-
-      if (data && data.length > 0) {
-        localStorage.setItem(STORAGE_CATEGORIES_KEY, JSON.stringify(data));
-        return data as PropertyCategory[];
+      const json = await callHostingerApi('GET', { table: 'categories' });
+      if (Array.isArray(json?.data) && json.data.length > 0) {
+        const sorted = [...json.data].sort((a, b) => (a.order || 0) - (b.order || 0));
+        localStorage.setItem(STORAGE_CATEGORIES_KEY, JSON.stringify(sorted));
+        notifyCategoriesChanged();
+        return sorted as PropertyCategory[];
       }
       return this.getCategories();
-    } catch (err) {
-      console.error('Unexpected error fetching categories:', err);
+    } catch {
       return this.getCategories();
     }
   },
@@ -641,9 +491,11 @@ export const categoryService = {
     localStorage.setItem(STORAGE_CATEGORIES_KEY, JSON.stringify(categories));
     notifyCategoriesChanged();
 
-    if (isLiveSupabase) {
-      safeExecute(supabase.from('categories').upsert(savedCat));
-    }
+    callHostingerApi('POST', {
+      action: 'upsert',
+      table: 'categories',
+      item: savedCat,
+    }).catch(err => console.error('Error saving category on Hostinger API:', err));
 
     return savedCat;
   },
@@ -654,9 +506,11 @@ export const categoryService = {
     localStorage.setItem(STORAGE_CATEGORIES_KEY, JSON.stringify(filtered));
     notifyCategoriesChanged();
 
-    if (isLiveSupabase) {
-      safeExecute(supabase.from('categories').delete().eq('id', id));
-    }
+    callHostingerApi('POST', {
+      action: 'delete',
+      table: 'categories',
+      id,
+    }).catch(err => console.error('Error deleting category on Hostinger API:', err));
 
     return true;
   },
@@ -665,9 +519,11 @@ export const categoryService = {
     localStorage.setItem(STORAGE_CATEGORIES_KEY, JSON.stringify(INITIAL_CATEGORIES));
     notifyCategoriesChanged();
 
-    if (isLiveSupabase) {
-      safeExecute(supabase.from('categories').upsert(INITIAL_CATEGORIES));
-    }
+    callHostingerApi('POST', {
+      action: 'bulk_upsert',
+      table: 'categories',
+      items: INITIAL_CATEGORIES,
+    }).catch(err => console.error('Error resetting categories on Hostinger API:', err));
 
     return INITIAL_CATEGORIES;
   }
@@ -685,7 +541,6 @@ export const matchesPropertyCategory = (propertyType: string, categoryFilter: st
 
   if (propNorm === filterNorm) return true;
 
-  // Legacy mappings for backwards compatibility
   const legacyAliases: Record<string, string[]> = {
     casas: ['casas', 'house', 'casa'],
     departamentos: ['departamentos', 'apartment', 'depto', 'departamento'],
@@ -699,7 +554,6 @@ export const matchesPropertyCategory = (propertyType: string, categoryFilter: st
     return true;
   }
 
-  // Reverse check: if filter is legacy english and prop is spanish
   for (const [canonical, aliases] of Object.entries(legacyAliases)) {
     if (canonical === filterNorm || aliases.includes(filterNorm)) {
       if (aliases.includes(propNorm) || canonical === propNorm) return true;
@@ -742,65 +596,53 @@ export const getPropertyTypeLabel = (type: string, categories: PropertyCategory[
 // ==========================================
 // TESTIMONIALS SERVICE & PERSISTENCE
 // ==========================================
-const INITIAL_TESTIMONIALS: Testimonial[] = [
-  {
-    id: 'test-1',
-    client_name: 'Ero Wals',
-    client_role: 'Operational Leads',
-    quote: '“Since using this platform, our team’s productivity has increased significantly. Processes that were previously manual can now be automated”',
-    rating: 5,
-    date: '12/05/2026',
-    platform: 'google',
-    is_active: true,
-    order_index: 1,
-    created_at: new Date('2026-05-12').toISOString(),
-  },
-  {
-    id: 'test-2',
-    client_name: 'María Eugenia R.',
-    client_role: 'Compradora Depto. Centro',
-    quote: '“Excelente acompañamiento y transparencia en cada paso de la compra. Encontraron exactamente lo que buscábamos para nuestra familia con total profesionalismo.”',
-    rating: 5,
-    date: '04/06/2026',
-    platform: 'google',
-    is_active: true,
-    order_index: 2,
-    created_at: new Date('2026-06-04').toISOString(),
-  },
-  {
-    id: 'test-3',
-    client_name: 'Martín Sbarbaro',
-    client_role: 'Inversor Residencial',
-    quote: '“El asesoramiento inmobiliario fue impecable. La tasación y el análisis del mercado nos permitieron tomar la mejor decisión de inversión con rentabilidad asegurada.”',
-    rating: 5,
-    date: '18/07/2026',
-    platform: 'whatsapp',
-    is_active: true,
-    order_index: 3,
-    created_at: new Date('2026-07-18').toISOString(),
-  },
-  {
-    id: 'test-4',
-    client_name: 'Lucía Fernández',
-    client_role: 'Propietaria - Venta Casa Quinta',
-    quote: '“Vendimos nuestra propiedad en tiempo récord y sin contratiempos. La calidad de las fotos y la difusión fue superadora. Muy agradecida con todo el equipo de Adelina.”',
-    rating: 5,
-    date: '22/08/2026',
-    platform: 'instagram',
-    is_active: true,
-    order_index: 4,
-    created_at: new Date('2026-08-22').toISOString(),
-  },
-];
+const INITIAL_TESTIMONIALS: Testimonial[] =
+  SEED_TESTIMONIALS.length > 0
+    ? SEED_TESTIMONIALS
+    : [
+        {
+          id: 'test-2',
+          client_name: 'María Eugenia R.',
+          client_role: 'Compradora Depto. Centro',
+          quote: '“Excelente acompañamiento y transparencia en cada paso de la compra. Encontraron exactamente lo que buscábamos para nuestra familia con total profesionalismo.”',
+          rating: 5,
+          date: '04/06/2026',
+          platform: 'google',
+          is_active: true,
+          order_index: 2,
+          created_at: new Date('2026-06-04').toISOString(),
+        },
+        {
+          id: 'test-3',
+          client_name: 'Martín Sbarbaro',
+          client_role: 'Inversor Residencial',
+          quote: '“El asesoramiento inmobiliario fue impecable. La tasación y el análisis del mercado nos permitieron tomar la mejor decisión de inversión con rentabilidad asegurada.”',
+          rating: 5,
+          date: '18/07/2026',
+          platform: 'whatsapp',
+          is_active: true,
+          order_index: 3,
+          created_at: new Date('2026-07-18').toISOString(),
+        },
+        {
+          id: 'test-4',
+          client_name: 'Lucía Fernández',
+          client_role: 'Propietaria - Venta Casa Quinta',
+          quote: '“Vendimos nuestra propiedad en tiempo récord y sin contratiempos. La calidad de las fotos y la difusión fue superadora. Muy agradecida con todo el equipo de Adelina.”',
+          rating: 5,
+          date: '22/08/2026',
+          platform: 'instagram',
+          is_active: true,
+          order_index: 4,
+          created_at: new Date('2026-08-22').toISOString(),
+        },
+      ];
 
 export const testimonialService = {
   getTestimonials(): Testimonial[] {
     const raw = localStorage.getItem(STORAGE_TESTIMONIALS_KEY);
     if (!raw) {
       localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(INITIAL_TESTIMONIALS));
-      if (isLiveSupabase) {
-        this.fetchTestimonials();
-      }
       return INITIAL_TESTIMONIALS;
     }
     try {
@@ -810,8 +652,7 @@ export const testimonialService = {
       }
       localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(INITIAL_TESTIMONIALS));
       return INITIAL_TESTIMONIALS;
-    } catch (e) {
-      console.error('Error parsing testimonials:', e);
+    } catch {
       return INITIAL_TESTIMONIALS;
     }
   },
@@ -822,25 +663,16 @@ export const testimonialService = {
   },
 
   async fetchTestimonials(): Promise<Testimonial[]> {
-    if (!isLiveSupabase) return this.getTestimonials();
     try {
-      const { data, error } = await supabase
-        .from('testimonials')
-        .select('*')
-        .order('order_index', { ascending: true });
-
-      if (error) {
-        console.error('Error fetching testimonials from Supabase:', error);
-        return this.getTestimonials();
-      }
-
-      if (data && data.length > 0) {
-        localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(data));
-        return data as Testimonial[];
+      const json = await callHostingerApi('GET', { table: 'testimonials' });
+      if (Array.isArray(json?.data) && json.data.length > 0) {
+        const sorted = [...json.data].sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
+        localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(sorted));
+        notifyTestimonialsChanged();
+        return sorted as Testimonial[];
       }
       return this.getTestimonials();
-    } catch (err) {
-      console.error('Unexpected error fetching testimonials:', err);
+    } catch {
       return this.getTestimonials();
     }
   },
@@ -903,9 +735,11 @@ export const testimonialService = {
     localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(testimonials));
     notifyTestimonialsChanged();
 
-    if (isLiveSupabase) {
-      safeExecute(supabase.from('testimonials').upsert(target));
-    }
+    callHostingerApi('POST', {
+      action: 'upsert',
+      table: 'testimonials',
+      item: target,
+    }).catch(err => console.error('Error saving testimonial on Hostinger API:', err));
 
     return target;
   },
@@ -919,14 +753,11 @@ export const testimonialService = {
       localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(testimonials));
       notifyTestimonialsChanged();
 
-      if (isLiveSupabase) {
-        safeExecute(
-          supabase
-            .from('testimonials')
-            .update({ is_active: updatedActive })
-            .eq('id', id)
-        );
-      }
+      callHostingerApi('POST', {
+        action: 'upsert',
+        table: 'testimonials',
+        item: testimonials[index],
+      }).catch(err => console.error('Error toggling testimonial on Hostinger API:', err));
 
       return updatedActive;
     }
@@ -939,9 +770,11 @@ export const testimonialService = {
     localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(filtered));
     notifyTestimonialsChanged();
 
-    if (isLiveSupabase) {
-      safeExecute(supabase.from('testimonials').delete().eq('id', id));
-    }
+    callHostingerApi('POST', {
+      action: 'delete',
+      table: 'testimonials',
+      id,
+    }).catch(err => console.error('Error deleting testimonial on Hostinger API:', err));
 
     return true;
   },
@@ -950,54 +783,48 @@ export const testimonialService = {
     localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(INITIAL_TESTIMONIALS));
     notifyTestimonialsChanged();
 
-    if (isLiveSupabase) {
-      safeExecute(supabase.from('testimonials').upsert(INITIAL_TESTIMONIALS));
-    }
+    callHostingerApi('POST', {
+      action: 'bulk_upsert',
+      table: 'testimonials',
+      items: INITIAL_TESTIMONIALS,
+    }).catch(err => console.error('Error resetting testimonials on Hostinger API:', err));
 
     return INITIAL_TESTIMONIALS;
   }
 };
 
 // ==========================================
-// AUTHENTICATION & PROFILES SERVICE
+// AUTHENTICATION & PROFILES SERVICE (Hostinger API)
 // ==========================================
 export const authService = {
   async login(email: string, password: string): Promise<{ user: any; profile: UserProfile | null }> {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password: password.trim(),
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+
+    const res = await callHostingerApi('POST', {
+      action: 'login',
+      email: cleanEmail,
+      password: cleanPassword,
     });
-    if (error) throw error;
 
-    let profile: UserProfile | null = null;
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', data.user.id)
-      .single();
-
-    if (profileData) {
-      profile = profileData as UserProfile;
-    } else {
-      profile = {
-        id: data.user.id,
-        email: data.user.email || '',
-        full_name: data.user.user_metadata?.full_name || email.split('@')[0],
-        role: (data.user.user_metadata?.role as UserRole) || 'corredor',
-      };
+    const userObj = res?.user;
+    if (!userObj) {
+      throw new Error('Credenciales inválidas.');
     }
+
+    const profile: UserProfile = {
+      id: userObj.id,
+      email: userObj.email,
+      full_name: userObj.full_name || cleanEmail.split('@')[0],
+      role: (userObj.role as UserRole) || 'superadmin',
+    };
 
     localStorage.setItem('adelina_admin_auth', 'true');
     localStorage.setItem('adelina_user_profile', JSON.stringify(profile));
-    return { user: data.user, profile };
+    return { user: userObj, profile };
   },
 
   async logout(): Promise<void> {
-    try {
-      await supabase.auth.signOut();
-    } catch (err) {
-      console.error('Error signing out from Supabase:', err);
-    }
     localStorage.removeItem('adelina_admin_auth');
     localStorage.removeItem('adelina_user_profile');
   },
@@ -1013,49 +840,44 @@ export const authService = {
   },
 
   async fetchCurrentProfile(): Promise<UserProfile | null> {
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData.session?.user) return this.getCurrentProfile();
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', sessionData.session.user.id)
-      .single();
-
-    if (profile) {
-      localStorage.setItem('adelina_user_profile', JSON.stringify(profile));
-      return profile as UserProfile;
-    }
     return this.getCurrentProfile();
   },
 
   async updatePassword(newPassword: string): Promise<void> {
-    const { error } = await supabase.auth.updateUser({
+    const current = this.getCurrentProfile();
+    if (!current?.email) {
+      throw new Error('No hay sesión activa.');
+    }
+    await callHostingerApi('POST', {
+      action: 'update_password',
+      email: current.email,
       password: newPassword,
     });
-    if (error) throw error;
   },
 
   getStoredProfiles(): UserProfile[] {
     const raw = localStorage.getItem('adelina_cached_profiles');
-    if (!raw) return [];
+    if (!raw) {
+      localStorage.setItem('adelina_cached_profiles', JSON.stringify(SEED_PROFILES));
+      return SEED_PROFILES;
+    }
     try {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : SEED_PROFILES;
     } catch {
-      return [];
+      return SEED_PROFILES;
     }
   },
 
   async getProfiles(): Promise<UserProfile[]> {
-    if (isLiveSupabase) {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: true });
-      if (!error && data) {
-        localStorage.setItem('adelina_cached_profiles', JSON.stringify(data));
-        return data as UserProfile[];
+    try {
+      const json = await callHostingerApi('GET', { table: 'profiles' });
+      if (Array.isArray(json?.data) && json.data.length > 0) {
+        localStorage.setItem('adelina_cached_profiles', JSON.stringify(json.data));
+        return json.data as UserProfile[];
       }
+    } catch (err) {
+      console.warn('Using cached profiles:', err);
     }
     return this.getStoredProfiles();
   },
@@ -1084,64 +906,30 @@ export const authService = {
       throw new Error('La contraseña debe tener al menos 6 caracteres.');
     }
 
-    if (isLiveSupabase) {
-      // Cliente aislado sin persistencia de sesión para no alterar la sesión del superadmin logueado
-      const isolatedClient = createClient(supabaseUrl, supabaseAnonKey, {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-          detectSessionInUrl: false,
-        },
-      });
+    const res = await callHostingerApi('POST', {
+      action: 'create_user',
+      email: email.trim(),
+      password: password.trim(),
+      full_name: fullName.trim(),
+      role,
+    });
 
-      const { data, error } = await isolatedClient.auth.signUp({
-        email: email.trim(),
-        password: password.trim(),
-        options: {
-          data: {
-            full_name: fullName.trim(),
-            role: role,
-          },
-        },
-      });
+    const newProfile: UserProfile = res?.profile || {
+      id: `usr-${Date.now()}`,
+      email: email.trim(),
+      full_name: fullName.trim(),
+      role,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
 
-      if (error) {
-        throw error;
-      }
+    const existing = this.getStoredProfiles();
+    localStorage.setItem(
+      'adelina_cached_profiles',
+      JSON.stringify([...existing.filter(p => p.id !== newProfile.id), newProfile])
+    );
 
-      if (!data.user) {
-        throw new Error('No se pudo registrar el usuario en Supabase Auth.');
-      }
-
-      const newProfile: UserProfile = {
-        id: data.user.id,
-        email: email.trim(),
-        full_name: fullName.trim(),
-        role: role,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      // Asegurar sincronización en public.profiles
-      await supabase.from('profiles').upsert(newProfile);
-
-      const existing = this.getStoredProfiles();
-      localStorage.setItem('adelina_cached_profiles', JSON.stringify([...existing.filter(p => p.id !== newProfile.id), newProfile]));
-
-      return newProfile;
-    } else {
-      const mockProfile: UserProfile = {
-        id: `mock-user-${Date.now()}`,
-        email: email.trim(),
-        full_name: fullName.trim(),
-        role: role,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      const existing = this.getStoredProfiles();
-      localStorage.setItem('adelina_cached_profiles', JSON.stringify([...existing, mockProfile]));
-      return mockProfile;
-    }
+    return newProfile;
   },
 
   async deleteProfile(userId: string): Promise<void> {
@@ -1153,13 +941,14 @@ export const authService = {
       throw new Error('No podés eliminar tu propia cuenta activa de Superadmin.');
     }
 
-    if (isLiveSupabase) {
-      const { error } = await supabase.from('profiles').delete().eq('id', userId);
-      if (error) throw error;
-    }
+    await callHostingerApi('POST', {
+      action: 'delete',
+      table: 'profiles',
+      id: userId,
+    });
 
     const existing = this.getStoredProfiles();
-    const updated = existing.filter((p) => p.id !== userId);
+    const updated = existing.filter(p => p.id !== userId);
     localStorage.setItem('adelina_cached_profiles', JSON.stringify(updated));
   },
 
@@ -1172,19 +961,20 @@ export const authService = {
       throw new Error('No podés revocar tus propios privilegios de Superadmin.');
     }
 
-    if (isLiveSupabase) {
-      const { error } = await supabase.from('profiles').update({ role }).eq('id', userId);
-      if (error) throw error;
-    }
+    await callHostingerApi('POST', {
+      action: 'update_role',
+      id: userId,
+      role,
+    });
 
     const existing = this.getStoredProfiles();
-    const updated = existing.map((p) => (p.id === userId ? { ...p, role } : p));
+    const updated = existing.map(p => (p.id === userId ? { ...p, role } : p));
     localStorage.setItem('adelina_cached_profiles', JSON.stringify(updated));
   }
 };
 
-// Initial background sync
-if (typeof window !== 'undefined' && isLiveSupabase) {
+// Initial background sync with Hostinger API
+if (typeof window !== 'undefined') {
   setTimeout(() => {
     propertyService.fetchProperties();
     categoryService.fetchCategories();
@@ -1192,4 +982,3 @@ if (typeof window !== 'undefined' && isLiveSupabase) {
     leadService.fetchLeads();
   }, 100);
 }
-
