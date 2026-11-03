@@ -180,7 +180,7 @@ export const propertyService = {
         );
 
         localStorage.setItem(STORAGE_PROPERTIES_KEY, JSON.stringify(merged));
-        notifyPropertiesChanged();
+        // notifyPropertiesChanged(); // removido: lecturas no deben emitir eventos (evita bucle infinito, ver bugfix_infinite_refetch_loop)
         return merged;
       }
 
@@ -336,7 +336,7 @@ export const leadService = {
       const json = await callHostingerApi('GET', { table: 'leads' });
       if (Array.isArray(json?.data)) {
         localStorage.setItem(STORAGE_LEADS_KEY, JSON.stringify(json.data));
-        notifyLeadsChanged();
+        // notifyLeadsChanged(); // removido: lecturas no deben emitir eventos (evita bucle infinito, ver bugfix_infinite_refetch_loop)
         return json.data as Lead[];
       }
       return this.getLeads();
@@ -436,7 +436,7 @@ export const categoryService = {
       if (Array.isArray(json?.data) && json.data.length > 0) {
         const sorted = [...json.data].sort((a, b) => (a.order || 0) - (b.order || 0));
         localStorage.setItem(STORAGE_CATEGORIES_KEY, JSON.stringify(sorted));
-        notifyCategoriesChanged();
+        notifyCategoriesChanged(); // OK: sus listeners solo leen localStorage, no vuelven a pedir al servidor
         return sorted as PropertyCategory[];
       }
       return this.getCategories();
@@ -668,7 +668,7 @@ export const testimonialService = {
       if (Array.isArray(json?.data) && json.data.length > 0) {
         const sorted = [...json.data].sort((a, b) => (a.order_index || 0) - (b.order_index || 0));
         localStorage.setItem(STORAGE_TESTIMONIALS_KEY, JSON.stringify(sorted));
-        notifyTestimonialsChanged();
+        notifyTestimonialsChanged(); // OK: sus listeners solo leen localStorage, no vuelven a pedir al servidor
         return sorted as Testimonial[];
       }
       return this.getTestimonials();
@@ -976,9 +976,8 @@ export const authService = {
 // Initial background sync with Hostinger API
 if (typeof window !== 'undefined') {
   setTimeout(() => {
-    propertyService.fetchProperties();
+    // propiedades y leads los pide App.tsx (refreshData); no duplicar la descarga
     categoryService.fetchCategories();
     testimonialService.fetchTestimonials();
-    leadService.fetchLeads();
   }, 100);
 }
