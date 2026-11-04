@@ -1,0 +1,14 @@
+# =========================================================================
+# ADELINA INMOBILIARIA - PROTECCION DE BASE DE DATOS JSON EN UPLOADS
+# =========================================================================
+# Bloquea el acceso web directo a uploads/*.json (db_store.json, db_store.bak.json, etc.)
+# Permite servir normalmente archivos multimedia (.webp, .jpg, .jpeg, .png, etc.)
+<FilesMatch "\.json$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>

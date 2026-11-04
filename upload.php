@@ -2,7 +2,7 @@
 // Endpoint de subida segura de imágenes para Adelina Inmobiliaria (Hostinger)
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, X-Upload-Key');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Upload-Key');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -15,13 +15,78 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// 1. Validar Token Secreto
-$SECRET_KEY = 'adelina_inmo_secret_upload_key_2026';
-$providedKey = $_SERVER['HTTP_X_UPLOAD_KEY'] ?? ($_POST['key'] ?? '');
+// 1. Validar Token de Sesión leyendo db_store.json
+function getBearerToken() {
+    $headers = null;
+    if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+        $headers = trim($_SERVER['HTTP_AUTHORIZATION']);
+    } elseif (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        $headers = trim($_SERVER['REDIRECT_HTTP_AUTHORIZATION']);
+    } elseif (function_exists('apache_request_headers')) {
+        $requestHeaders = apache_request_headers();
+        if (isset($requestHeaders['Authorization'])) {
+            $headers = trim($requestHeaders['Authorization']);
+        } elseif (isset($requestHeaders['authorization'])) {
+            $headers = trim($requestHeaders['authorization']);
+        }
+    }
+    if (!empty($headers) && preg_match('/Bearer\s(\S+)/i', $headers, $matches)) {
+        return $matches[1];
+    }
+    return null;
+}
 
-if ($providedKey !== $SECRET_KEY) {
+$hostingerDataDir = '/home/u675372216/domains/adelinainmo.lnx.com.ar/data';
+if (is_dir('/home/u675372216/domains/adelinainmo.lnx.com.ar')) {
+    $dataDir = $hostingerDataDir;
+} elseif (isset($_SERVER['DOCUMENT_ROOT']) && is_dir($_SERVER['DOCUMENT_ROOT'])) {
+    $dataDir = dirname(rtrim($_SERVER['DOCUMENT_ROOT'], '/\\')) . '/data';
+} else {
+    $dataDir = dirname(__DIR__) . '/data';
+}
+
+if (!is_dir($dataDir)) {
+    @mkdir($dataDir, 0755, true);
+}
+
+function isSessionValid($token) {
+    global $dataDir;
+    if (!$token) return false;
+    $dbFile = $dataDir . '/db_store.json';
+    if (!file_exists($dbFile)) {
+        $dbFile = __DIR__ . '/uploads/db_store.json';
+    }
+    if (!file_exists($dbFile)) return false;
+    $raw = @file_get_contents($dbFile);
+    $data = @json_decode($raw, true);
+    if (!isset($data['sessions']) || !is_array($data['sessions'])) return false;
+    $tokenHash = hash('sha256', $token);
+    $now = time();
+    foreach ($data['sessions'] as $session) {
+        if (isset($session['token_hash']) && hash_equals($session['token_hash'], $tokenHash)) {
+            if (isset($session['expires_at']) && $session['expires_at'] > $now) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+$token = getBearerToken();
+$isValid = isSessionValid($token);
+
+// Opcional: autenticación para scripts locales/CLI via variable de entorno en servidor
+if (!$isValid) {
+    $envSecret = getenv('ADELINA_SECRET_KEY');
+    $providedKey = $_SERVER['HTTP_X_UPLOAD_KEY'] ?? '';
+    if (!empty($envSecret) && !empty($providedKey) && hash_equals($envSecret, $providedKey)) {
+        $isValid = true;
+    }
+}
+
+if (!$isValid) {
     http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized']);
+    echo json_encode(['error' => 'Unauthorized: Valid session token required']);
     exit;
 }
 
@@ -60,9 +125,9 @@ if (!isset($allowedMimes[$mimeType])) {
 
 $ext = $allowedMimes[$mimeType];
 
-// 4. Directorio de destino
+// 4. Directorio de destino persistente fuera de public_html
 $folder = isset($_POST['folder']) && $_POST['folder'] === 'testimonials' ? 'testimonials' : 'properties';
-$uploadDir = __DIR__ . '/uploads/' . $folder . '/';
+$uploadDir = $dataDir . '/uploads/' . $folder . '/';
 
 if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0755, true);

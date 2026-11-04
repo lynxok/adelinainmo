@@ -4,19 +4,38 @@ DirectoryIndex dist/index.html index.html
   RewriteEngine On
   RewriteBase /
 
-  # 1. Serve upload.php and api.php directly from root so they share /uploads
-  RewriteRule ^(upload\.php|api\.php|seed_db\.json)$ $1 [L]
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-  # 2. If requested path exists inside dist/, serve it
+  # 1. Serve upload.php, api.php and img.php directly from root
+  RewriteRule ^(upload\.php|api\.php|img\.php)$ $1 [L]
+
+  # 2. Serve uploads through img.php from persistent storage outside public_html
+  RewriteRule ^uploads/properties/(.+)$ img.php?folder=properties&f=$1 [L,QSA]
+  RewriteRule ^uploads/testimonials/(.+)$ img.php?folder=testimonials&f=$1 [L,QSA]
+
+  # 3. If requested path exists inside dist/, serve it
   RewriteCond %{DOCUMENT_ROOT}/dist/$1 -f
   RewriteRule ^(.*)$ dist/$1 [L]
 
-  # 2. If requested file exists in root, serve it
+  # 4. If requested file exists in root, serve it
   RewriteCond %{REQUEST_FILENAME} -f
   RewriteRule ^ - [L]
 
-  # 3. SPA fallback: all non-file routes go to dist/index.html
+  # 5. SPA fallback: all non-file routes go to dist/index.html
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule . /dist/index.html [L]
 </IfModule>
+
+# Bloquear acceso web directo a seed_db.json y backups en la raiz
+<FilesMatch "^(seed_db\.json|.*\.bak\.json)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1

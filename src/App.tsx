@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Property, Lead, PropertyFilter, UserProfile } from './types/property';
-import { propertyService, leadService, authService } from './lib/supabase';
+import { propertyService, leadService, authService, getAdminToken } from './lib/supabase';
 import { Navbar } from './components/public/Navbar';
 import { Footer } from './components/public/Footer';
 import { FloatingWhatsAppButton } from './components/public/FloatingWhatsAppButton';
@@ -92,7 +92,12 @@ function buildRouteUrl(view: AppView, slug?: string, filters?: PropertyFilter): 
 
 export function App() {
   const [properties, setProperties] = useState<Property[]>(() => propertyService.getProperties());
-  const [leads, setLeads] = useState<Lead[]>(() => leadService.getLeads());
+  const [leads, setLeads] = useState<Lead[]>(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem('adelina_admin_auth') === 'true' && getAdminToken()) {
+      return leadService.getLeads();
+    }
+    return [];
+  });
   const [currentView, setCurrentView] = useState<AppView>(() => parseRouteFromUrl().view);
   const [selectedPropertySlug, setSelectedPropertySlug] = useState<string>(() => parseRouteFromUrl().slug || '');
   const [catalogFilters, setCatalogFilters] = useState<PropertyFilter | undefined>(() => parseRouteFromUrl().filters);
@@ -125,20 +130,28 @@ export function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Load initial properties & leads
+  // Admin-only: Load leads
+  const refreshAdminLeads = async () => {
+    if (localStorage.getItem('adelina_admin_auth') !== 'true') return;
+    const cached = leadService.getLeads();
+    if (cached.length > 0) setLeads(cached);
+    try {
+      const remoteLeads = await leadService.fetchLeads();
+      if (remoteLeads) setLeads(remoteLeads);
+    } catch (err) {
+      console.error('Error fetching leads from Hostinger API:', err);
+    }
+  };
+
+  // Load public properties
   const refreshData = async () => {
     const cached = propertyService.getProperties();
     if (cached.length > 0) setProperties(cached);
-    setLeads(leadService.getLeads());
     try {
-      const [remoteProps, remoteLeads] = await Promise.all([
-        propertyService.fetchProperties(),
-        leadService.fetchLeads(),
-      ]);
+      const remoteProps = await propertyService.fetchProperties();
       if (remoteProps && remoteProps.length > 0) setProperties(remoteProps);
-      if (remoteLeads) setLeads(remoteLeads);
     } catch (err) {
-      console.error('Error fetching fresh data from Supabase:', err);
+      console.error('Error fetching properties from Hostinger API:', err);
     }
   };
 
@@ -146,7 +159,13 @@ export function App() {
     refreshData();
 
     window.addEventListener('adelina-properties-changed', refreshData);
-    window.addEventListener('adelina-leads-changed', refreshData);
+
+    const handleLeadsChanged = () => {
+      if (localStorage.getItem('adelina_admin_auth') === 'true') {
+        refreshAdminLeads();
+      }
+    };
+    window.addEventListener('adelina-leads-changed', handleLeadsChanged);
 
     // Save initial state into browser history if not already set
     const initialRoute = parseRouteFromUrl();
@@ -169,8 +188,10 @@ export function App() {
 
     // Check saved admin auth
     const savedAuth = localStorage.getItem('adelina_admin_auth');
-    if (savedAuth === 'true') {
+    const token = getAdminToken();
+    if (savedAuth === 'true' && token) {
       setIsAdminAuthenticated(true);
+      refreshAdminLeads();
       const current = authService.getCurrentProfile();
       if (current) {
         setUserProfile(current);
@@ -186,11 +207,16 @@ export function App() {
           }
         }
       });
+    } else if (savedAuth === 'true' && !token) {
+      localStorage.removeItem('adelina_admin_auth');
+      localStorage.removeItem('adelina_user_profile');
+      setIsAdminAuthenticated(false);
+      setUserProfile(null);
     }
 
     return () => {
       window.removeEventListener('adelina-properties-changed', refreshData);
-      window.removeEventListener('adelina-leads-changed', refreshData);
+      window.removeEventListener('adelina-leads-changed', handleLeadsChanged);
       window.removeEventListener('popstate', handlePopState);
     };
   }, []);
@@ -268,6 +294,7 @@ export function App() {
     await authService.logout();
     setIsAdminAuthenticated(false);
     setUserProfile(null);
+    setLeads([]);
     setCurrentView('home');
   };
 
@@ -302,6 +329,7 @@ export function App() {
         <AdminLoginPage
           onLoginSuccess={(profile) => {
             setIsAdminAuthenticated(true);
+            refreshAdminLeads();
             if (profile) setUserProfile(profile);
             if (profile?.role === 'corredor') {
               setAdminTab('properties');

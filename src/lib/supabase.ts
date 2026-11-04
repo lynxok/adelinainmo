@@ -12,7 +12,22 @@ const HOSTINGER_ORIGIN = typeof window !== 'undefined' && window.location.hostna
 
 const HOSTINGER_UPLOAD_URL = `${HOSTINGER_ORIGIN}/upload.php`;
 const HOSTINGER_API_URL = `${HOSTINGER_ORIGIN}/api.php`;
-const HOSTINGER_SECRET_KEY = 'adelina_inmo_secret_upload_key_2026';
+
+const SESSION_TOKEN_KEY = 'adelina_admin_token';
+
+export function getAdminToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return sessionStorage.getItem(SESSION_TOKEN_KEY);
+}
+
+export function setAdminToken(token: string | null): void {
+  if (typeof window === 'undefined') return;
+  if (token) {
+    sessionStorage.setItem(SESSION_TOKEN_KEY, token);
+  } else {
+    sessionStorage.removeItem(SESSION_TOKEN_KEY);
+  }
+}
 
 export const isLiveSupabase = true;
 export const supabase = null as any;
@@ -20,33 +35,40 @@ export const supabase = null as any;
 const SEED_PROPERTIES: Property[] = (seedDbRaw.properties || []) as Property[];
 const SEED_CATEGORIES: PropertyCategory[] = (seedDbRaw.categories || []) as PropertyCategory[];
 const SEED_TESTIMONIALS: Testimonial[] = (seedDbRaw.testimonials || []) as Testimonial[];
-const SEED_PROFILES: UserProfile[] = (seedDbRaw.profiles || []) as UserProfile[];
+const SEED_PROFILES: UserProfile[] = [];
 
 const STORAGE_PROPERTIES_KEY = 'adelina_properties_data_v2';
 const STORAGE_LEADS_KEY = 'adelina_leads_data_v1';
 const STORAGE_CATEGORIES_KEY = 'adelina_categories_data_v1';
 const STORAGE_TESTIMONIALS_KEY = 'adelina_testimonials_data';
 
-// Helper for Hostinger JSON API calls
+// Helper for Hostinger JSON API calls with Bearer Token Auth
 async function callHostingerApi(
   method: 'GET' | 'POST',
-  paramsOrBody: Record<string, any>
+  paramsOrBody: Record<string, any> = {},
+  requiresAuth = false
 ): Promise<any> {
+  const token = getAdminToken();
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   if (method === 'GET') {
     const qs = new URLSearchParams(paramsOrBody as Record<string, string>).toString();
-    const res = await fetch(`${HOSTINGER_API_URL}?${qs}`, {
+    const url = qs ? `${HOSTINGER_API_URL}?${qs}` : HOSTINGER_API_URL;
+    const res = await fetch(url, {
       method: 'GET',
+      headers,
       cache: 'no-store',
     });
     if (!res.ok) throw new Error(`API GET error: ${res.status}`);
     return res.json();
   } else {
+    headers['Content-Type'] = 'application/json';
     const res = await fetch(HOSTINGER_API_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Upload-Key': HOSTINGER_SECRET_KEY,
-      },
+      headers,
       body: JSON.stringify(paramsOrBody),
     });
     const data = await res.json().catch(() => ({}));
@@ -97,11 +119,15 @@ export const uploadImageToSupabase = async (
       formData.append('file', webpFile);
       formData.append('folder', folder);
 
+      const token = getAdminToken();
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const res = await fetch(HOSTINGER_UPLOAD_URL, {
         method: 'POST',
-        headers: {
-          'X-Upload-Key': HOSTINGER_SECRET_KEY,
-        },
+        headers,
         body: formData,
       });
 
@@ -333,7 +359,7 @@ export const leadService = {
 
   async fetchLeads(): Promise<Lead[]> {
     try {
-      const json = await callHostingerApi('GET', { table: 'leads' });
+      const json = await callHostingerApi('GET', { table: 'leads' }, true);
       if (Array.isArray(json?.data)) {
         localStorage.setItem(STORAGE_LEADS_KEY, JSON.stringify(json.data));
         // notifyLeadsChanged(); // removido: lecturas no deben emitir eventos (evita bucle infinito, ver bugfix_infinite_refetch_loop)
@@ -808,9 +834,12 @@ export const authService = {
     });
 
     const userObj = res?.user;
-    if (!userObj) {
+    const token = res?.token;
+    if (!userObj || !token) {
       throw new Error('Credenciales inválidas.');
     }
+
+    setAdminToken(token);
 
     const profile: UserProfile = {
       id: userObj.id,
@@ -825,6 +854,12 @@ export const authService = {
   },
 
   async logout(): Promise<void> {
+    try {
+      await callHostingerApi('POST', { action: 'logout' });
+    } catch {
+      // Ignorar errores de red al cerrar sesión
+    }
+    setAdminToken(null);
     localStorage.removeItem('adelina_admin_auth');
     localStorage.removeItem('adelina_user_profile');
   },
@@ -871,7 +906,7 @@ export const authService = {
 
   async getProfiles(): Promise<UserProfile[]> {
     try {
-      const json = await callHostingerApi('GET', { table: 'profiles' });
+      const json = await callHostingerApi('GET', { table: 'profiles' }, true);
       if (Array.isArray(json?.data) && json.data.length > 0) {
         localStorage.setItem('adelina_cached_profiles', JSON.stringify(json.data));
         return json.data as UserProfile[];

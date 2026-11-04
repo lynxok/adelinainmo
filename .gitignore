@@ -13,3 +13,9 @@ Thumbs.db
 supabase/.temp/
 generate_manual_pdf.py
 lynx_a4_background.png
+*.cjs
+Migración Base de datos/
+uploads/*
+!uploads/.htaccess
+
+db_store_live_backup.json
