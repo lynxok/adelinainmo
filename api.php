@@ -294,15 +294,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Check stored password hash
-        if (isset($db['passwords'][$email])) {
-            if (!password_verify($password, $db['passwords'][$email])) {
-                http_response_code(401);
-                echo json_encode(['error' => 'Invalid login credentials']);
-                exit;
-            }
-        } else {
-            // First login password bind: preserved per instructions until user confirms
-            $db['passwords'][$email] = password_hash($password, PASSWORD_DEFAULT);
+        if (!isset($db['passwords'][$email]) || !password_verify($password, $db['passwords'][$email])) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Invalid login credentials']);
+            exit;
         }
 
         // Generate 32-byte secure session token
