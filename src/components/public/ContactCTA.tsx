@@ -31,9 +31,10 @@ export const ContactCTA: React.FC = () => {
         {/* Right Half: Business Card on Chrome Tubes Photo from Figma */}
         <div className="md:col-span-6 relative min-h-[320px] md:min-h-full">
           <img
-            src="/assets/business-card-tubes.png"
+            src="/assets/business-card-tubes.webp"
             alt="Adelina Luján Tarjeta de Presentación"
             className="w-full h-full object-cover object-center"
+            loading="lazy"
           />
         </div>
       </div>

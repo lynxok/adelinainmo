@@ -11,9 +11,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
       {/* Background Image from Figma */}
       <div className="absolute inset-0 z-0">
         <img
-          src="/assets/foto-inicial.png"
+          src="/assets/foto-inicial.webp"
           alt="Interior Inmobiliario"
           className="w-full h-full object-cover object-center"
+          loading="eager"
         />
         {/* Subtle dark gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/70" />

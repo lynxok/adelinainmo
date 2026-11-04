@@ -7,9 +7,10 @@ export const NextStepBanner: React.FC = () => {
         {/* Left Half: Office Facade Sign Photo from Figma */}
         <div className="md:col-span-6 relative min-h-[280px] md:min-h-full">
           <img
-            src="/assets/office-facade-sign.png"
+            src="/assets/office-facade-sign.webp"
             alt="Adelina Luján Estudio Inmobiliario"
             className="w-full h-full object-cover object-center"
+            loading="lazy"
           />
         </div>
 

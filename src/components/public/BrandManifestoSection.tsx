@@ -10,6 +10,7 @@ export const BrandManifestoSection: React.FC = () => {
             src="/assets/al-monogram-eye.svg"
             alt="Adelina Luján Monograma AL"
             className="h-24 sm:h-32 w-auto object-contain hover:scale-105 transition-transform duration-300"
+            loading="lazy"
           />
         </div>
 

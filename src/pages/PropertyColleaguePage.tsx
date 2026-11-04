@@ -9,7 +9,7 @@ interface PropertyColleaguePageProps {
 export const PropertyColleaguePage: React.FC<PropertyColleaguePageProps> = ({ property }) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  const images = property.images.length > 0 ? property.images : ['/assets/chic-living.jpg'];
+  const images = property.images.length > 0 ? property.images : ['/assets/chic-living.webp'];
 
   const displayPrice = property.currency === 'USD'
     ? `USD $${(property.price_usd || 0).toLocaleString('es-AR')}`
@@ -90,7 +90,7 @@ export const PropertyColleaguePage: React.FC<PropertyColleaguePageProps> = ({ pr
                     selectedImageIndex === idx ? 'border-zinc-900 scale-105' : 'border-transparent opacity-70'
                   }`}
                 >
-                  <img src={img} alt={`Foto ${idx + 1}`} className="w-full h-full object-cover" />
+                  <img src={img} alt={`Foto ${idx + 1}`} className="w-full h-full object-cover" loading="lazy" />
                 </button>
               ))}
             </div>

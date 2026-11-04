@@ -405,7 +405,7 @@ export const BuyAndSellPage: React.FC<BuyAndSellPageProps> = ({
                   : 'Alquiler Temporario';
 
               const categoryLabel = getPropertyTypeLabel(property.property_type, categories);
-              const mainImage = property.featured_image || property.images[0] || '/assets/chic-living.jpg';
+              const mainImage = property.featured_image || property.images[0] || '/assets/chic-living.webp';
               const displayPrice =
                 property.currency === 'USD'
                   ? `USD ${(property.price_usd || 0).toLocaleString('es-AR')}`
@@ -645,9 +645,10 @@ export const BuyAndSellPage: React.FC<BuyAndSellPageProps> = ({
           <div className="lg:col-span-5 relative">
             <div className="aspect-[4/3] rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative">
               <img
-                src="/assets/office-facade-sign.png"
+                src="/assets/office-facade-sign.webp"
                 alt="Oficina Adelina Luján"
                 className="w-full h-full object-cover"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
               <div className="absolute bottom-6 left-6 right-6 text-white space-y-1">

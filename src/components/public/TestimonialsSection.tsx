@@ -79,9 +79,10 @@ export const TestimonialsSection: React.FC = () => {
       {/* Background Image: Embossed AL Monogram Wall with Exact Framing from Figma */}
       <div className="absolute inset-0 z-0">
         <img
-          src="/assets/embossed-wall-al.png"
+          src="/assets/embossed-wall-al.webp"
           alt="Monograma AL en bajo relieve"
           className="w-full h-full object-cover object-[center_48%]"
+          loading="lazy"
         />
         {/* Very subtle ambient overlay to preserve sharp contrast */}
         <div className="absolute inset-0 bg-black/5 pointer-events-none" />

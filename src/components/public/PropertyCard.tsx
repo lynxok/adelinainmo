@@ -26,7 +26,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     ? 'Alquiler'
     : 'Alquiler Temporario';
 
-  const mainImage = property.featured_image || property.images[0] || '/assets/chic-living.jpg';
+  const mainImage = property.featured_image || property.images[0] || '/assets/chic-living.webp';
 
   return (
     <div className="group bg-white rounded-2xl overflow-hidden border border-adelina-border/60 hover:border-adelina-accent/60 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full">

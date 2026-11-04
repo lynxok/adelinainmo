@@ -36,9 +36,10 @@ export const BrandEditorialSection: React.FC = () => {
           <div className="lg:col-span-6 flex justify-center">
             <div className="max-w-sm rounded-3xl overflow-hidden shadow-2xl bg-white border border-zinc-200">
               <img
-                src="/assets/business-card.png"
+                src="/assets/business-card.webp"
                 alt="Tarjeta de presentación Adelina Luján"
                 className="w-full h-auto object-cover"
+                loading="lazy"
               />
             </div>
           </div>

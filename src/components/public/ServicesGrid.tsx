@@ -28,9 +28,10 @@ export const ServicesGrid: React.FC<ServicesGridProps> = ({ onNavigate }) => {
         {/* Central Wide Modern Living Room Image with Rounded Corners */}
         <div className="rounded-3xl sm:rounded-[32px] overflow-hidden shadow-sm bg-zinc-100 aspect-[16/9] max-w-4xl mx-auto">
           <img
-            src="/assets/services-living.jpg"
+            src="/assets/services-living.webp"
             alt="Espacio contemporáneo y asesoramiento inmobiliario"
             className="w-full h-full object-cover object-center"
+            loading="lazy"
           />
         </div>
 

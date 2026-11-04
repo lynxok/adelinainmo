@@ -68,7 +68,7 @@ export const ValuationPage: React.FC = () => {
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img
-            src="/assets/tarjeta-bg.png"
+            src="/assets/tarjeta-bg.webp"
             alt="Tasación Inmobiliaria"
             className="w-full h-full object-cover object-center"
           />
@@ -173,6 +173,7 @@ export const ValuationPage: React.FC = () => {
                   src="/assets/valuation-interior.jpg"
                   alt="Interior de diseño exclusivo - Tasaciones Adelina Luján"
                   className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
+                  loading="lazy"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-50" />
                 

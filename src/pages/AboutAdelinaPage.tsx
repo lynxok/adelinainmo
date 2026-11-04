@@ -19,9 +19,10 @@ export const AboutAdelinaPage: React.FC<AboutAdelinaPageProps> = ({ onNavigate }
       {/* 1. Cabecera Monumental con Textura Pétrea y Monograma Calado (Figma 1:1) */}
       <section className="relative w-full h-[360px] sm:h-[440px] md:h-[520px] lg:h-[620px] overflow-hidden bg-zinc-900 flex items-center justify-center pt-16 sm:pt-20">
         <img
-          src="/assets/stone-texture.jpg"
+          src="/assets/stone-texture.webp"
           alt="Textura mineral de fondo"
           className="absolute inset-0 w-full h-full object-cover object-center select-none"
+          loading="lazy"
         />
         <div className="absolute inset-0 bg-black/25" />
 
@@ -31,6 +32,7 @@ export const AboutAdelinaPage: React.FC<AboutAdelinaPageProps> = ({ onNavigate }
             src="/assets/adelina-monogram-expanded.png"
             alt="Adelina Luján - Monograma"
             className="w-full max-w-[480px] sm:max-w-[680px] md:max-w-[850px] lg:max-w-[1020px] h-auto object-contain drop-shadow-2xl animate-fadeIn"
+            loading="lazy"
           />
         </div>
       </section>
@@ -56,6 +58,7 @@ export const AboutAdelinaPage: React.FC<AboutAdelinaPageProps> = ({ onNavigate }
                 src="/assets/adelina-portrait.jpg"
                 alt="Adelina Luján - Corredora Inmobiliaria y Martillera Pública"
                 className="w-full h-full object-cover object-center"
+                loading="lazy"
               />
             </div>
           </div>

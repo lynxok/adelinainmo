@@ -47,7 +47,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
         location: locationStr,
         specs: specsParts.join('  |  ') || 'Consultar detalles',
         priceFormatted: formattedPrice,
-        image: p.featured_image || p.images?.[0] || '/assets/property-house-private.jpg',
+        image: p.featured_image || p.images?.[0] || '/assets/property-house-private.webp',
         status: p.status,
       };
     });
@@ -153,6 +153,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
                     src={prop.image}
                     alt={prop.title}
                     className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
                   />
                   {prop.status === 'reserved' && (
                     <span className="absolute top-3 right-3 bg-amber-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
@@ -205,6 +206,7 @@ export const FeaturedProperties: React.FC<FeaturedPropertiesProps> = ({
                     src={prop.image}
                     alt={prop.title}
                     className="w-full h-full object-cover object-center"
+                    loading="lazy"
                   />
                   {prop.status === 'reserved' && (
                     <span className="absolute top-3 right-3 bg-amber-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow">

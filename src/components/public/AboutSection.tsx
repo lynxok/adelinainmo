@@ -17,6 +17,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate }) => {
                 src="/assets/adelina-portrait.jpg"
                 alt="Adelina Luján Corredora Inmobiliaria"
                 className="w-full h-full object-cover object-center"
+                loading="lazy"
               />
             </div>
           </div>

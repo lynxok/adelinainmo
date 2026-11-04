@@ -278,8 +278,8 @@ export const AdminPropertyEditPage: React.FC<AdminPropertyEditPageProps> = ({
         covered_area_sqm: Number(coveredArea) || 0,
         total_area_sqm: Number(totalArea) || 0,
         amenities,
-        images: images.length > 0 ? images : ['/assets/chic-living.jpg'],
-        featured_image: featuredImage || images[0] || '/assets/chic-living.jpg',
+        images: images.length > 0 ? images : ['/assets/chic-living.webp'],
+        featured_image: featuredImage || images[0] || '/assets/chic-living.webp',
         is_featured: isFeatured,
         status,
       };

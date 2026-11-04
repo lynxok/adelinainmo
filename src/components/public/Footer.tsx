@@ -16,6 +16,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               src="/assets/al-monogram-footer.svg"
               alt="Adelina Luján Isotipo AL"
               className="w-36 sm:w-44 md:w-52 h-auto object-contain"
+              loading="lazy"
             />
           </div>
 
@@ -84,6 +85,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                 src="/assets/bardo-logo.svg"
                 alt="Bardo"
                 className="h-3.5 sm:h-4 w-auto object-contain opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all"
+                loading="lazy"
               />
             </a>
             <span className="ml-1">y desarrollado por</span>
@@ -98,6 +100,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                 src="/assets/lynx-logo-white.png"
                 alt="LYNX"
                 className="h-10 sm:h-12 w-auto object-contain opacity-95 group-hover:scale-105 transition-transform"
+                loading="lazy"
               />
             </a>
           </div>

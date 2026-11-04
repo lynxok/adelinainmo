@@ -18,4 +18,7 @@ Migración Base de datos/
 uploads/*
 !uploads/.htaccess
 
+assets_originales/
+scripts/
+
 db_store_live_backup.json

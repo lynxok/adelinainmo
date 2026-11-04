@@ -61,8 +61,8 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
   const defaultFigmaImages = [
     '/assets/trendy-loft-studio.jpg',
     '/assets/modern-house-construction.jpg',
-    '/assets/serene-white-modern-home.jpg',
-    '/assets/3d-modern-facade-house.jpg',
+    '/assets/serene-white-modern-home.webp',
+    '/assets/3d-modern-facade-house.webp',
   ];
 
   const images = property.images && property.images.length > 0
@@ -319,6 +319,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                 src={images[(selectedImageIndex + 1) % images.length]}
                 alt="Vista previa siguiente"
                 className="w-full h-full object-cover cursor-pointer opacity-90 hover:opacity-100 transition-opacity"
+                loading="lazy"
                 onClick={handleNextImage}
                 onError={(e) => {
                   const fallback = defaultFigmaImages[(selectedImageIndex + 1) % defaultFigmaImages.length];
