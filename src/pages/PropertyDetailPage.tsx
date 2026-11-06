@@ -205,7 +205,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
   const ambientesCount = property.bedrooms > 0 ? property.bedrooms + 1 : 1;
 
   return (
-    <div className="bg-[#F2F2F2] min-h-screen text-[#303030] font-archivo">
+    <div className="bg-[#F2F2F2] min-h-screen text-[#303030] font-archivo overflow-x-hidden">
       {/* Top spacing accounting for the fixed navbar */}
       <div className="pt-24 sm:pt-28 pb-16 px-4 sm:px-6 lg:px-12 max-w-[1600px] mx-auto space-y-8">
 
@@ -279,7 +279,11 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
         <div className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
             {/* Primary Main Image */}
-            <div className="lg:col-span-8 relative aspect-[16/10] rounded-[25px] overflow-hidden bg-zinc-800 shadow-md border border-zinc-200 group">
+            <div 
+              className="lg:col-span-8 relative aspect-[16/10] rounded-[25px] overflow-hidden bg-zinc-800 shadow-md border border-zinc-200 group"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
               <img
                 src={images[selectedImageIndex] || defaultFigmaImages[0]}
                 alt={`${property.title} - Imagen ${selectedImageIndex + 1}`}
@@ -339,45 +343,36 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
             </div>
           </div>
 
-          {/* Carousel Pagination & Arrows (Figma style 01, 02, 03...) */}
-          <div className="flex items-center justify-center gap-6 py-2">
-            <button
-              onClick={handlePrevImage}
-              className="w-11 h-11 rounded-full bg-white border border-zinc-300 text-[#808080] hover:text-black hover:border-black flex items-center justify-center transition-all shadow-sm active:scale-95"
-              aria-label="Anterior"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
+          {/* Carousel Pagination & Arrows (Compact counter: 01 / 47) */}
+          {images.length > 1 && (
+            <div className="flex items-center justify-center gap-4 sm:gap-6 py-2">
+              <button
+                onClick={handlePrevImage}
+                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white border border-zinc-300 text-[#808080] hover:text-black hover:border-black flex items-center justify-center transition-all shadow-sm active:scale-95"
+                aria-label="Anterior"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
 
-            {/* Numbers: 01, 02, 03... */}
-            <div className="flex items-center gap-4">
-              {images.map((_, idx) => {
-                const isActive = idx === selectedImageIndex;
-                const formattedNum = String(idx + 1).padStart(2, '0');
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedImageIndex(idx)}
-                    className={`font-archivo transition-all ${
-                      isActive
-                        ? 'text-black font-semibold text-lg border-b-2 border-black pb-0.5'
-                        : 'text-[#808080] font-normal text-sm hover:text-black'
-                    }`}
-                  >
-                    {formattedNum}
-                  </button>
-                );
-              })}
+              <div className="flex items-center gap-2 font-archivo select-none px-4 py-1.5 bg-white rounded-full border border-zinc-200/80 shadow-sm">
+                <span className="text-black font-semibold text-base sm:text-lg tracking-tight">
+                  {String(selectedImageIndex + 1).padStart(2, '0')}
+                </span>
+                <span className="text-[#808080] font-light text-sm">/</span>
+                <span className="text-[#808080] font-medium text-sm sm:text-base">
+                  {String(images.length).padStart(2, '0')}
+                </span>
+              </div>
+
+              <button
+                onClick={handleNextImage}
+                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#303030] text-white hover:bg-black flex items-center justify-center transition-all shadow-sm active:scale-95"
+                aria-label="Siguiente"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
             </div>
-
-            <button
-              onClick={handleNextImage}
-              className="w-11 h-11 rounded-full bg-[#303030] text-white hover:bg-black flex items-center justify-center transition-all shadow-sm active:scale-95"
-              aria-label="Siguiente"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
+          )}
         </div>
 
         {/* 4. HORIZONTAL SPECS RIBBON (Recuadro 1520x126) */}

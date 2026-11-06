@@ -111,42 +111,36 @@ export const uploadImageToSupabase = async (
   file: File,
   folder = 'properties'
 ): Promise<string> => {
-  try {
-    const { file: webpFile, dataUrl } = await compressImageToWebP(file);
+  const { file: webpFile } = await compressImageToWebP(file);
 
-    try {
-      const formData = new FormData();
-      formData.append('file', webpFile);
-      formData.append('folder', folder);
+  const formData = new FormData();
+  formData.append('file', webpFile);
+  formData.append('folder', folder);
 
-      const token = getAdminToken();
-      const headers: Record<string, string> = {};
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const res = await fetch(HOSTINGER_UPLOAD_URL, {
-        method: 'POST',
-        headers,
-        body: formData,
-      });
-
-      if (res.ok) {
-        const json = await res.json();
-        if (json?.url) {
-          return json.url;
-        }
-      }
-    } catch (hostingerErr) {
-      console.warn('Hostinger image upload fallback to compressed WebP dataUrl:', hostingerErr);
-    }
-
-    return dataUrl;
-  } catch (err) {
-    console.error('Error in uploadImageToSupabase:', err);
-    const { dataUrl } = await compressImageToWebP(file);
-    return dataUrl;
+  const token = getAdminToken();
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
+
+  const res = await fetch(HOSTINGER_UPLOAD_URL, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => null);
+    const msg = errorData?.error || `Error ${res.status}: Falló la subida de imagen al servidor.`;
+    throw new Error(msg);
+  }
+
+  const json = await res.json();
+  if (!json?.url) {
+    throw new Error('El servidor de subida no devolvió la URL de la imagen.');
+  }
+
+  return json.url;
 };
 
 // ==========================================
